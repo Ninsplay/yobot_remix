@@ -14,7 +14,6 @@ https://github.com/richardchien/nonebot
 然后在`yobot.py`中添加`import`（这一步可以交给仓库管理者做）
 '''
 
-import asyncio
 from typing import Any, Dict, Union
 
 from aiocqhttp.api import Api
@@ -74,7 +73,6 @@ class Custom:
 
         cmd = ctx['raw_message']
         if cmd == '你好':
-
             # 调用api发送消息，详见cqhttp文档
             await self.api.send_private_msg(
                 user_id=123456, message='收到问好')

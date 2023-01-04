@@ -15,7 +15,6 @@ class Index:
         self.public_basepath = glo_setting["public_basepath"]
 
     def register_routes(self, app: Quart):
-
         @app.route(self.public_basepath, ["GET"])
         async def yobot_homepage():
             return await render_template(

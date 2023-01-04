@@ -7,8 +7,8 @@ import random
 import shutil
 import socket
 import sys
-from io import BytesIO
 from functools import reduce
+from io import BytesIO
 from typing import Any, Callable, Dict, Iterable, List, Tuple
 from urllib.parse import urljoin
 
@@ -29,6 +29,7 @@ else:
                            switcher, templating, web_util, ybdata,
                            yobot_msg, custom, group_leave)
 
+
 # 本项目构建的框架非常粗糙，不建议各位把时间浪费本项目上
 # 如果想开发自己的机器人，建议直接使用 nonebot 框架
 # https://nonebot.cqp.moe/
@@ -37,6 +38,7 @@ else:
 class Yobot:
     Version = "[v4.0.2]"
     Version_id = 302
+
     #  "git rev-list --count HEAD"
 
     def __init__(self, *,
@@ -101,7 +103,7 @@ class Yobot:
             shutil.copyfile(default_BossIdAndName_filepath, BossIdAndName_filepath)
         with open(BossIdAndName_filepath, "r", encoding="utf-8") as config_file:
             self.boss_id_name = json.load(config_file)
-    
+
         with open(config_f_path, "r", encoding="utf-8-sig") as config_file:
             cfg = json.load(config_file)
             for k in self.glo_setting.keys():
@@ -117,13 +119,14 @@ class Yobot:
         # enable gzip
         if self.glo_setting["web_gzip"] > 0:
             gzipped_types = {'text/html', 'text/javascript', 'text/css', 'application/json'}
+
             @quart_app.after_request
             async def gzip_response(response):
                 accept_encoding = request.headers.get('Accept-Encoding', '')
                 if (response.status_code < 200 or
-                    response.status_code >= 300 or
-                    len(await response.get_data()) < 1024 or
-                    'gzip' not in accept_encoding.lower() or
+                        response.status_code >= 300 or
+                        len(await response.get_data()) < 1024 or
+                        'gzip' not in accept_encoding.lower() or
                         'Content-Encoding' in response.headers):
                     return response
 
@@ -158,7 +161,7 @@ class Yobot:
 
         if not self.glo_setting["public_basepath"].startswith("/"):
             self.glo_setting["public_basepath"] = "/" + \
-                self.glo_setting["public_basepath"]
+                                                  self.glo_setting["public_basepath"]
 
         if not self.glo_setting["public_basepath"].endswith("/"):
             self.glo_setting["public_basepath"] += "/"
@@ -175,7 +178,7 @@ class Yobot:
         templating.Ver = self.Version[2:-1]
 
         # generate random secret_key
-        if(quart_app.secret_key is None):
+        if (quart_app.secret_key is None):
             quart_app.secret_key = bytes(
                 (random.randint(0, 255) for _ in range(16)))
 
@@ -183,7 +186,7 @@ class Yobot:
         mimetypes.init()
         mimetypes.add_type('application/javascript', '.js')
         mimetypes.add_type('image/webp', '.webp')
-        
+
         # add route for js dependencies
         @quart_app.route("/yobot-depencency/<path:filename>")
         async def yobot_js_dependencies(filename):
@@ -199,15 +202,15 @@ class Yobot:
                     return "404 not found", 404
                 with open(origin_file, 'rb') as of, open(gzipped_file, 'wb') as gf:
                     with gzip.GzipFile(
-                        mode='wb',
-                        compresslevel=self.glo_setting["web_gzip"],
-                        fileobj=gf,
+                            mode='wb',
+                            compresslevel=self.glo_setting["web_gzip"],
+                            fileobj=gf,
                     ) as gzip_file:
                         gzip_file.write(of.read())
             response = await make_response(await send_file(gzipped_file))
             response.mimetype = (
-                mimetypes.guess_type(os.path.basename(origin_file))[0]
-                or "application/octet-stream"
+                    mimetypes.guess_type(os.path.basename(origin_file))[0]
+                    or "application/octet-stream"
             )
             response.headers['Content-Encoding'] = 'gzip'
             response.headers['Vary'] = 'Accept-Encoding'
@@ -281,7 +284,7 @@ class Yobot:
 
     def active_jobs(self) -> List[Tuple[Any, Callable[[], Iterable[Dict[str, Any]]]]]:
         jobs = [p.jobs() for p in self.plug_active]
-        return reduce(lambda x, y: x+y, jobs)
+        return reduce(lambda x, y: x + y, jobs)
 
     async def proc_async(self, msg: dict, *args, **kwargs) -> str:
         '''
@@ -372,9 +375,9 @@ class Yobot:
             return res["reply"]
 
 
-def get_version(base_version: str, base_commit:  int) -> dict:
-        return {
-            "run-as": "python",
-            "commited": False,
-            "ver_name": f"ReMix-{base_version}"
-        }
+def get_version(base_version: str, base_commit: int) -> dict:
+    return {
+        "run-as": "python",
+        "commited": False,
+        "ver_name": f"ReMix-{base_version}"
+    }

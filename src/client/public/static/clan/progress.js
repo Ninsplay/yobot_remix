@@ -17,7 +17,7 @@ var vm = new Vue({
         dropMemberVisible: false,
         today: 0,
         isMobile: false,
-        tempList:[0,1,2,3,4,5],
+        tempList: [0, 1, 2, 3, 4, 5],
     },
     mounted() {
         var thisvue = this;
@@ -52,7 +52,7 @@ var vm = new Vue({
             thisvue.$alert(error, '获取数据失败');
         });
     },
-    beforeMount () {
+    beforeMount() {
         var userAgentInfo = navigator.userAgent;
         var Agents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod'];
         for (var v = 0; v < Agents.length; v++) {
@@ -97,16 +97,16 @@ var vm = new Vue({
             }
             var nd = new Date();
             nd.setTime(cha.challenge_time * 1000);
-            var detailstr = nd.toLocaleString('chinese', { hour12: false, timeZone: 'asia/shanghai' }) + '\n';
+            var detailstr = nd.toLocaleString('chinese', {hour12: false, timeZone: 'asia/shanghai'}) + '\n';
             detailstr += cha.cycle + '周目' + cha.boss_num + '号boss\n';
-            detailstr += (cha.health_remain + cha.damage).toLocaleString(options = { timeZone: 'asia/shanghai' }) 
-                        + '→' + cha.health_remain.toLocaleString(options = { timeZone: 'asia/shanghai' });
+            detailstr += (cha.health_remain + cha.damage).toLocaleString(options = {timeZone: 'asia/shanghai'})
+                + '→' + cha.health_remain.toLocaleString(options = {timeZone: 'asia/shanghai'});
             if (cha.message) {
                 detailstr += '\n留言：' + cha.message;
             }
             return detailstr;
         },
-        arraySpanMethod: function ({ row, column, rowIndex, columnIndex }) {
+        arraySpanMethod: function ({row, column, rowIndex, columnIndex}) {
             if (columnIndex >= 4) {
                 if (columnIndex % 2 == 0) {
                     var detail = row.detail[columnIndex - 4];
@@ -142,7 +142,7 @@ var vm = new Vue({
             challenges.sort((a, b) => a.qqid - b.qqid);
             this.progressData = [...this.members];
             var thisvue = this;
-            var m = { qqid: -1 };
+            var m = {qqid: -1};
             for (c of challenges) {
                 if (m.qqid != c.qqid) {
                     thisvue.update_member_info(m);
@@ -153,12 +153,12 @@ var vm = new Vue({
                     }
                 }
 
-                for (id of this.tempList){
+                for (id of this.tempList) {
                     if (!m.detail[id]) {
-                        if (id%2 == 1 && c.is_continue && m.detail[id-1] && m.detail[id-1].health_remain == 0) {
+                        if (id % 2 == 1 && c.is_continue && m.detail[id - 1] && m.detail[id - 1].health_remain == 0) {
                             m.detail[id] = c;
                             break;
-                        } else if (id%2 == 0) {
+                        } else if (id % 2 == 0) {
                             m.detail[id] = c;
                             break;
                         }
@@ -181,7 +181,7 @@ var vm = new Vue({
             this.tailsData = [];
             for (const m of this.progressData) {
                 for (id of this.tempList) {
-                    if (id%2 == 0 && m.detail[id] && m.detail[id].health_remain == 0 && !m.detail[id].is_continue && !m.detail[id+1]) {
+                    if (id % 2 == 0 && m.detail[id] && m.detail[id].health_remain == 0 && !m.detail[id].is_continue && !m.detail[id + 1]) {
                         let c = m.detail[id];
                         this.tailsData.push({
                             qqid: m.qqid,
@@ -215,7 +215,8 @@ var vm = new Vue({
                 if (m.qqid == qqid) {
                     return m.nickname;
                 }
-            };
+            }
+            ;
             return qqid;
         },
         viewInExcel: function () {

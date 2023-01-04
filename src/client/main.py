@@ -2,8 +2,8 @@
 实例1：利用aiocqhttp作为httpapi的服务端
 """
 
-import platform
 import os
+import platform
 import sys
 
 if platform.system() == "Linux":

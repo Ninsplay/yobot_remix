@@ -7,7 +7,6 @@ QQid = NewType('QQid', int)
 Groupid = NewType('Groupid', int)
 
 
-
 @dataclass
 class BossChallenge:
     date: Pcr_date

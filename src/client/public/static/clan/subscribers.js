@@ -17,7 +17,7 @@ var vm = new Vue({
         }).then(function (res) {
             if (res.data.code == 0) {
                 for (sub of res.data.subscribers) {
-                    thisvue.subscribers[sub.boss-1].push(sub);
+                    thisvue.subscribers[sub.boss - 1].push(sub);
                 }
                 thisvue.group_name = res.data.group_name;
                 document.title = res.data.group_name + ' - 公会战设置';
@@ -46,7 +46,8 @@ var vm = new Vue({
                 if (m.qqid == qqid) {
                     return m.nickname;
                 }
-            };
+            }
+            ;
             return qqid;
         },
         handleSelect(key, keyPath) {

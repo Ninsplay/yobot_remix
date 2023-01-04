@@ -14,9 +14,11 @@ if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] != "make_plugin":
         raise ValueError("unknown command")
 
+
     def makefile(path, content="# doing nothing"):
         with open(path, "w") as f:
             f.write(content)
+
 
     filepath = os.path.abspath(os.path.join(os.getcwd(), "__init__.py"))
     makefile(filepath)
@@ -65,6 +67,7 @@ async def handle_msg(cqbot, context):
         await cqbot.send(context, reply, at_sender=False)
     else:
         return None
+
 
 @cqbot.on_message
 async def handle_msg(context):

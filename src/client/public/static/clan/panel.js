@@ -6,17 +6,19 @@ var vm = new Vue({
     data: {
         activeIndex: "1",
         groupData: {},
-        bossData: { 1:{is_next:false,cycle:0,health:0,full_health:0,icon_id:0,challenger:{}},
-                    2:{is_next:false,cycle:0,health:0,full_health:0,icon_id:0,challenger:{}},
-                    3:{is_next:false,cycle:0,health:0,full_health:0,icon_id:0,challenger:{}},
-                    4:{is_next:false,cycle:0,health:0,full_health:0,icon_id:0,challenger:{}},
-                    5:{is_next:false,cycle:0,health:0,full_health:0,icon_id:0,challenger:{}}},
+        bossData: {
+            1: {is_next: false, cycle: 0, health: 0, full_health: 0, icon_id: 0, challenger: {}},
+            2: {is_next: false, cycle: 0, health: 0, full_health: 0, icon_id: 0, challenger: {}},
+            3: {is_next: false, cycle: 0, health: 0, full_health: 0, icon_id: 0, challenger: {}},
+            4: {is_next: false, cycle: 0, health: 0, full_health: 0, icon_id: 0, challenger: {}},
+            5: {is_next: false, cycle: 0, health: 0, full_health: 0, icon_id: 0, challenger: {}}
+        },
         is_admin: false,
         self_id: 0,
         members: [],
 
         isMobile: false,    //是否是手机
-        boxShow:{1:false,2:false,3:false,4:false,5:false},  //手机版面板抽屉显示
+        boxShow: {1: false, 2: false, 3: false, 4: false, 5: false},  //手机版面板抽屉显示
 
         base_cycle: 1,  //当前基础周目
 
@@ -27,31 +29,31 @@ var vm = new Vue({
         behalf_tree: null,          //挂树
         behalf_cancelTree: null,    //取消挂树
 
-        applyDialog: {1:false,2:false,3:false,4:false,5:false},         //申请出刀弹窗是否显示
-        cancelApplyDialog: {1:false,2:false,3:false,4:false,5:false},   //取消出刀弹窗是否显示
-        is_continue:false,          //申请出刀弹窗内 是否是补偿刀 开关
+        applyDialog: {1: false, 2: false, 3: false, 4: false, 5: false},         //申请出刀弹窗是否显示
+        cancelApplyDialog: {1: false, 2: false, 3: false, 4: false, 5: false},   //取消出刀弹窗是否显示
+        is_continue: false,          //申请出刀弹窗内 是否是补偿刀 开关
 
-        recordDamageDialog: {1:false,2:false,3:false,4:false,5:false},  //报刀弹窗是否显示
+        recordDamageDialog: {1: false, 2: false, 3: false, 4: false, 5: false},  //报刀弹窗是否显示
         defeat: null,       //报刀弹窗内 是否击败boss 开关
         damage: 0,          //报刀弹窗内 伤害值
 
         treeDialog: false,          //挂树弹窗是否显示
         cancelTreeDialog: false,    //取消挂树弹窗是否显示
-        treeNum:1,                  //挂树弹窗选择的boss
+        treeNum: 1,                  //挂树弹窗选择的boss
 
         statusFormVisible: false,   //修改boss状态弹窗是否显示
         boss_num: 1,                //选择操作修改boss状态的boss编号
 
-        slDialog:false,         //sl弹窗是否显示
-        cancelSlDialog:false,   //取消sl弹窗是否显示
-        slMember:0,             //需要记录sl的成员
+        slDialog: false,         //sl弹窗是否显示
+        cancelSlDialog: false,   //取消sl弹窗是否显示
+        slMember: 0,             //需要记录sl的成员
 
         subscribe: null,        //预约/取消预约 哪个boss
         message: '',            //预约留言（心理安慰，无实际作用）
         subscribeFormVisible: false,    //添加预约弹窗是否显示
         subscribeCancelVisible: false,  //取消预约弹窗是否显示
         leavePage: false,
-        challengersList: {1:false,2:false,3:false,4:false,5:false},     //各个正在挑战的玩家列表显示
+        challengersList: {1: false, 2: false, 3: false, 4: false, 5: false},     //各个正在挑战的玩家列表显示
     },
     mounted() {
         var thisvue = this;
@@ -87,7 +89,7 @@ var vm = new Vue({
         });
         this.status_long_polling();
     },
-    beforeMount () {
+    beforeMount() {
         var userAgentInfo = navigator.userAgent;
         var Agents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod'];
         for (var v = 0; v < Agents.length; v++) {
@@ -123,7 +125,8 @@ var vm = new Vue({
                 if (m.qqid == qqid) {
                     return m.nickname;
                 }
-            };
+            }
+            ;
             return qqid;
         },
         status_long_polling: function () {
@@ -138,11 +141,11 @@ var vm = new Vue({
                 if (res.data.code == 0) {
                     thisvue.bossData = res.data.bossData;
                     thisvue.base_cycle = res.data.base_cycle,
-                    thisvue.status_long_polling();
+                        thisvue.status_long_polling();
                     if (res.data.notice) {
                         thisvue.$notify({
                             title: '通知',
-                            message: '(' + (new Date()).toLocaleTimeString('chinese', { hour12: false }) + ') ' + res.data.notice,
+                            message: '(' + (new Date()).toLocaleTimeString('chinese', {hour12: false}) + ') ' + res.data.notice,
                             duration: 60000,
                         });
                     }
@@ -156,7 +159,7 @@ var vm = new Vue({
                     }).then(() => {
                         thisvue.status_long_polling();
                     }).catch(() => {
-                    
+
                     });
                 }
             }).catch(function (error) {
@@ -199,7 +202,7 @@ var vm = new Vue({
                 thisvue.$alert(error, 'Σ(っ °Д °;)っ');
             });
         },
-        update_boss_data: function() {
+        update_boss_data: function () {
             this.callapi({
                 action: 'update_boss_data'
             });
@@ -237,18 +240,18 @@ var vm = new Vue({
             this.callapi({
                 action: 'save_slot',
                 member: this.slMember,
-				status: true,
+                status: true,
             });
         },
         cancel_save_slot: function (event) {
             this.callapi({
                 action: 'save_slot',
                 member: this.slMember,
-				status: false,
+                status: false,
             });
         },
         add_subscribe: function (event) {
-            if(this.subscribe){
+            if (this.subscribe) {
                 this.callapi({
                     action: 'add_subscribe',
                     boss_num: parseInt(this.subscribe),
@@ -260,7 +263,7 @@ var vm = new Vue({
             }
         },
         cancel_subscribe: function (event) {
-            if(this.subscribe){
+            if (this.subscribe) {
                 this.callapi({
                     action: 'cancel_subscribe',
                     boss_num: parseInt(this.subscribe),
@@ -285,36 +288,36 @@ var vm = new Vue({
             });
             this.statusFormVisible = false;
         },
-        put_on_the_tree: function(){
+        put_on_the_tree: function () {
             this.callapi({
                 action: 'put_on_the_tree',
                 behalf: this.behalf_tree
             });
         },
-        take_it_of_the_tree: function(){
+        take_it_of_the_tree: function () {
             this.callapi({
                 action: 'take_it_of_the_tree',
                 behalf: this.behalf_cancelTree
             });
         },
-        show_challengers: function(boss_num) {
+        show_challengers: function (boss_num) {
             this.challengersList[boss_num] = true
         },
-        close_challengers: function(boss_num) {
+        close_challengers: function (boss_num) {
             this.challengersList[boss_num] = false
         },
-        get_challenger_id: function(boss_num) {
+        get_challenger_id: function (boss_num) {
             return "challengers_list" + String(boss_num)
         },
-        get_boss_icon_id: function(boss_num) {
+        get_boss_icon_id: function (boss_num) {
             return "boss_icon_num" + String(boss_num)
         },
-        boss_icon_src: function(boss_num) {
+        boss_icon_src: function (boss_num) {
             var icon_id = this.bossData[boss_num].icon_id
-            return "/yobot-depencency/yocool@final/princessadventure/boss_icon/"+icon_id+".webp"
+            return "/yobot-depencency/yocool@final/princessadventure/boss_icon/" + icon_id + ".webp"
         },
-        setting: function(){
-            this.$router.push({path:'./setting/'})
+        setting: function () {
+            this.$router.push({path: './setting/'})
         },
         handleSelect(key, keyPath) {
             this.leavePage = true;

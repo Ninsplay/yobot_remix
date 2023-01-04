@@ -8,3 +8,4 @@ src/client/yobot_data/yobot_config.json
 src/client/public/template/help/
 src/client/public/static/aya.ico
 src/client/yobot_data/
+/.idea

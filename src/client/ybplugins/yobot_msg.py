@@ -41,7 +41,7 @@ class Message:
         elif match_num == 2:
             reply = "boss被击败后我会提醒下树"
         else:
-            reply = "此功能已经不再可用，请查看"+self.help_page
+            reply = "此功能已经不再可用，请查看" + self.help_page
         return {
             "reply": reply,
             "block": True

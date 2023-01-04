@@ -348,7 +348,7 @@ class Setting:
                 if action == 'get_data':
                     groups = []
                     for group in Clan_group.select().where(
-                        Clan_group.deleted == False,
+                            Clan_group.deleted == False,
                     ):
                         groups.append({
                             'group_id': group.group_id,

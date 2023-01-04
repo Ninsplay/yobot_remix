@@ -1,5 +1,5 @@
 from peewee import *
-from playhouse.migrate import SqliteMigrator, migrate
+from playhouse.migrate import SqliteMigrator
 
 from .web_util import rand_string
 

@@ -29,12 +29,12 @@ def pcr_datetime(area, dt: Union[int, datetime.datetime, None] = None) -> Tuple[
         ts = dt.timestamp()
     else:
         raise ValueError(f'cannot parse {type(dt)} to pcrdatetime')
-    ts += pcr_time_offset[area]*3600
+    ts += pcr_time_offset[area] * 3600
     return divmod(ts, 86400)
 
 
 def pcr_timestamp(d: Pcr_date, t: Pcr_time, area) -> int:
-    return 86400*d + t - (pcr_time_offset[area]*3600)
+    return 86400 * d + t - (pcr_time_offset[area] * 3600)
 
 
 def atqq(qqid):
@@ -55,5 +55,7 @@ def timed_cached_func(max_len, max_age_seconds, ignore_self=False):
                 value = fn(*args)
                 cache[key] = value
             return value
+
         return wrapper
+
     return decorator

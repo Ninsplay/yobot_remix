@@ -1,6 +1,7 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 from aiocqhttp.api import Api
+
 from .web_util import rand_string
 
 

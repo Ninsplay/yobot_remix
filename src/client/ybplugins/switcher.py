@@ -35,7 +35,6 @@ class Switcher:
             f = 0
         return f
 
-
     def execute(self, match_num: int, msg: dict) -> dict:
         return urljoin(
             self.setting['public_address'],
