@@ -82,6 +82,7 @@ class ClanBattle:
     subscribe = subscribe  ##预约
     subscribe_cancel = subscribe_cancel  ##取消预约
     get_subscribe_list = get_subscribe_list  ##获取预约列表
+    get_used_info = get_used_info  ##获取单人出刀情况
 
     get_report = get_report  ##获取报告
     get_battle_member_list = get_battle_member_list  ##从会战记录里获取成员列表

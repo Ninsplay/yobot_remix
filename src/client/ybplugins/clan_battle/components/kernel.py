@@ -43,7 +43,7 @@ def init(self,
     _logger.addHandler(consolehandler)
     _logger.setLevel(logging.INFO)
 
-    for group in Clan_group.select().where(Clan_group.deleted == False):
+    for group in Clan_group.select().where(Clan_group.deleted is False):
         self._boss_status[group.group_id] = asyncio.get_event_loop().create_future()
 
     # super-admin initialize
@@ -191,12 +191,12 @@ def execute(self, match_num, ctx):
         return boss_status
 
     elif match_num == 7:  # 预约
-        match = re.match(r'^预约([1-5]|表) *$', cmd)
+        match = re.match(r'^预约([1-5]|表) *(?:[:：](.*))?$', cmd)
         if not match:
             return
-        msg = match.group(1)
+        arg, msg = match.group(1), match.group(2)
         try:
-            back_msg = self.subscribe(group_id, user_id, msg)
+            back_msg = self.subscribe(group_id, user_id, arg, msg=msg)
         except ClanBattleError as e:
             _logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
             return str(e)
@@ -239,7 +239,8 @@ def execute(self, match_num, ctx):
 
     elif match_num == 12:  # 申请
         match = re.match(r'^申请出刀(| )([1-5]) *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
-        if not match: return '申请出刀格式错误\n例：申请出刀1 or 申请出刀1b 代表补偿\n后接@为别人申请出刀)'
+        if not match:
+            return '申请出刀格式错误\n例：申请出刀1 or 申请出刀1b 代表补偿\n后接@为别人申请出刀)'
         boss_num = match.group(2)
         is_continue = match.group(3) and True or False
         behalf = match.group(4) and int(match.group(4))
@@ -256,7 +257,7 @@ def execute(self, match_num, ctx):
 
     elif match_num == 13:  # 取消
         match = re.match(
-            r'^取消 *([1-5]|挂树|申请出刀|申请|出刀|出刀all|报伤害|sl|SL|预约) *([1-5])? *(?:\[CQ:at,qq=(\d+)\])? *$',
+            r'^取消(?:预约)?([1-5]|挂树|申请出刀|申请|出刀|出刀all|报伤害|sl|SL|预约) *([1-5])? *(?:\[CQ:at,qq=(\d+)\])? *$',
             cmd)
         if not match:
             return
@@ -275,10 +276,8 @@ def execute(self, match_num, ctx):
             msg = self.report_hurt(0, 0, group_id, user_id, 1)
         elif b == 'sl' or b == 'SL':
             msg = self.save_slot(group_id, user_id, clean_flag=True)
-        elif b == '预约':
-            msg = self.subscribe_cancel(group_id, boss_num, user_id)
         else:
-            return
+            msg = self.subscribe_cancel(group_id, boss_num, user_id)
         _logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
         return msg
 
@@ -288,15 +287,13 @@ def execute(self, match_num, ctx):
         return f'公会战面板：\n{url}\n建议添加到浏览器收藏夹或桌面快捷方式'
 
     elif match_num == 16:  # SL
-        match = re.match(r'^(?:SL|sl) *([\?？])? *(?:\[CQ:at,qq=(\d+)\])? *([\?？])? *$', cmd)
+        match = re.match(r'^(?:SL|sl) *([?？])? *(?:\[CQ:at,qq=(\d+)\])? *([\?？])? *$', cmd)
         if not match:
             return
         behalf = match.group(2) and int(match.group(2))
         only_check = bool(match.group(1) or match.group(3))
         if behalf:
             user_id = behalf
-        # if not self.check_blade(group_id, user_id) and not only_check:
-        # 	return '你都没申请出刀，S啥子L啊 (╯‵□′)╯︵┻━┻'
         if only_check:
             sl_ed = self.save_slot(group_id, user_id, only_check=True)
             if sl_ed:
@@ -313,15 +310,17 @@ def execute(self, match_num, ctx):
             return back_msg
 
     elif match_num == 17:  # 报伤害
-        match = re.match(r'^报伤害(?:剩| |)(?:(\d+(?:s|S|秒))?(?:打了| |)(\d+)(?:w|W|万))? *(?:\[CQ:at,qq=(\d+)\])? *$',
+        match = re.match(r'^报伤害(?:剩| |)(?:(\d+[sS秒])?(?:打了| |)(\d+)[wW万])? *(?:\[CQ:at,qq=(\d+)\])? *$',
                          cmd)
         if not match:
             return '格式出错(O×O)，如“报伤害 2s200w”或“报伤害 3s300w@xxx”'
         s = match.group(1) or 1
-        if s != 1: s = re.sub(r'([a-z]|[A-Z]|秒)', '', s)
+        if s != 1:
+            s = re.sub(r'([a-z]|[A-Z]|秒)', '', s)
         hurt = match.group(2) and int(match.group(2))
         behalf = match.group(3) and int(match.group(3))
-        if behalf: user_id = behalf
+        if behalf:
+            user_id = behalf
         if not self.check_blade(group_id, user_id):
             return '你还没申请出刀呢'
         return self.report_hurt(int(s), hurt, group_id, user_id)
@@ -348,20 +347,17 @@ def execute(self, match_num, ctx):
             _logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
             return '{}已成功申请权限'.format(atqq(user_id))
 
-    elif match_num == 19:  # 更改预约模式
-        # TODO 19:更改预约模式
-        print("完成度0%")
-
-    elif match_num == 20:
-        if cmd[:2] == '查刀' and len(cmd) > 2:
-            match = re.match('^查刀 *(?:\[CQ:at,qq=(\d+)\])?$', cmd)
-            if not match:
-                return
-            user_id = match.group(1) and int(match.group(1))
-            if user_id is None:
-                user_id = ctx['user_id']
-            fin, con, sl = self.get_used_info(user_id, group_id)
-            if finished == 3 and not _continue:
-                return '他已经下班了，塔诺西！'
-            else:
-                return f'他已经出完{fin}刀，手上{f"有{con}刀" if con else "没有"}补偿刀，sl{"已用" if sl else "还在"}'
+    elif match_num == 19:
+        match = re.match(r'^查刀 *(?:\[CQ:at,qq=(\d+)\])?$', cmd)
+        if not match:
+            return
+        user_id = match.group(1) and int(match.group(1))
+        call = '他'
+        if user_id is None:
+            user_id = ctx['user_id']
+            call = '你'
+        fin, con, sl = self.get_used_info(user_id, group_id)
+        if fin == 3 and not _continue:
+            return f'{call}已经下班了，塔诺西！'
+        else:
+            return f'{call}已经出完{fin}刀，手上{f"有{con}刀" if con else "没有"}补偿刀，sl{"已用" if sl else "还在"}'

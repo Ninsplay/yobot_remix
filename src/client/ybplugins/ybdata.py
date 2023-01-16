@@ -87,11 +87,12 @@ class Clan_group(_BaseModel):
     #               damage:报伤害,
     #               tree:是否挂树boolean,
     #               msg:挂树留言
+    #               sl:是否sl过
     #           },
     #       }, }
     challenging_member_list = TextField(null=True)
 
-    # 预约表（json格式文本） 结构：{boss_num:[qqid, ], }
+    # 预约表（json格式文本） 结构：{boss_num:[[qqid, ], [msg, ]], }
     subscribe_list = TextField(null=True)
 
     challenging_start_time = BigIntegerField(default=0)
