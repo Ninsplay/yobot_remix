@@ -1286,7 +1286,7 @@ def challenger_info_small(self, group: Clan_group, boss_num, msg: List = None):
             if info['behalf']:
                 behalf = self._get_nickname_by_qqid(info['behalf'])
                 temp_msg += f'({behalf}代刀)'
-            temp_msg += f'{"无" if info["sl"] else "有"}sl'
+            temp_msg += f'--{"无" if info["sl"] else "有"}sl'
             if info['damage'] > 0:
                 temp_msg += f', 剩{info["s"]}秒，打了{info["damage"]}万伤害'
             if info['tree']:
@@ -1327,15 +1327,16 @@ def challenger_info(self, group_id):
 
     line = 0
     finished = sum(bool(c.boss_health_remain or c.is_continue) for c in challenges)
-    msg = [f'今天已出{finished}刀，']
+    msg = []
+    temp_msg = f'今天已出{finished}刀，'
     if len(end_blade_qqid) > 0:
-        temp_msg = '剩余补偿刀有：'
+        temp_msg += '剩余补偿刀有：'
         for qqid, num in end_blade_qqid.items():
             if num > 0:
-                temp_msg += f'{self._get_nickname_by_qqid(qqid)}--{num}刀'
-        msg.append(temp_msg)
+                temp_msg += f'\n{self._get_nickname_by_qqid(qqid)}--{num}刀'
     else:
-        msg.append('无剩余补偿刀')
+        temp_msg += '无剩余补偿刀'
+    msg.append(temp_msg)
 
     msg.append('====================')
     for boss_num in range(5):
