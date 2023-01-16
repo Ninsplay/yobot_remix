@@ -1325,7 +1325,6 @@ def challenger_info(self, group_id):
             if end_blade_qqid[c.qqid] == 0:
                 del end_blade_qqid[c.qqid]
 
-    line = 0
     finished = sum(bool(c.boss_health_remain or c.is_continue) for c in challenges)
     msg = []
     temp_msg = f'今天已出{finished}刀，'
@@ -1342,12 +1341,6 @@ def challenger_info(self, group_id):
     for boss_num in range(5):
         self.challenger_info_small(group, str(boss_num + 1), msg)
         msg.append('====================')
-    for once in range(len(msg)):
-        str_list = list(msg[once])
-        for i in range(math.floor(len(msg[once]) / 21)):
-            str_list.insert((i + 1) * 20, '\n')
-            line += 1
-        msg[once] = ''.join(str_list)
     back_msg = text_2_pic(self, '\n'.join(msg))
 
     return back_msg
