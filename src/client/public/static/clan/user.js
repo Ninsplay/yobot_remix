@@ -1,15 +1,12 @@
-var gs_offset = {jp: 4, tw: 5, kr: 4, cn: 5};
-
+var gs_offset = { jp: 4, tw: 5, kr: 4, cn: 5 };
 function pad2(num) {
     return String(num).padStart(2, '0');
 }
-
 function ts2ds(timestamp) {
     var d = new Date();
     d.setTime(timestamp * 1000);
     return d.getFullYear() + '/' + pad2(d.getMonth() + 1) + '/' + pad2(d.getDate());
 }
-
 var vm = new Vue({
     el: '#app',
     data: {
@@ -52,15 +49,15 @@ var vm = new Vue({
             }
             var nd = new Date();
             nd.setTime(cha.challenge_time * 1000);
-            var detailstr = nd.toLocaleString('chinese', {hour12: false, timeZone: 'asia/shanghai'}) + '\n';
+            var detailstr = nd.toLocaleString('chinese', { hour12: false, timeZone: 'asia/shanghai' }) + '\n';
             detailstr += cha.cycle + '周目' + cha.boss_num + '号boss\n';
-            detailstr += (cha.health_remain + cha.damage).toLocaleString(options = {timeZone: 'asia/shanghai'}) + '→' + cha.health_remain.toLocaleString(options = {timeZone: 'asia/shanghai'});
+            detailstr += (cha.health_remain + cha.damage).toLocaleString(options = { timeZone: 'asia/shanghai' }) + '→' + cha.health_remain.toLocaleString(options = { timeZone: 'asia/shanghai' });
             if (cha.message) {
                 detailstr += '\n留言：' + cha.message;
             }
             return detailstr;
         },
-        arraySpanMethod: function ({row, column, rowIndex, columnIndex}) {
+        arraySpanMethod: function ({ row, column, rowIndex, columnIndex }) {
             if (columnIndex >= 2) {
                 if (columnIndex % 2 == 0) {
                     var detail = row.detail[columnIndex - 2];
@@ -77,7 +74,7 @@ var vm = new Vue({
         },
         refresh: function (challenges, game_server) {
             var thisvue = this;
-            var m = {pcrdate: -1};
+            var m = { pcrdate: -1 };
             for (c of challenges) {
                 var pcrdate = ts2ds(c.challenge_time - (gs_offset[game_server] * 3600));
                 if (m.pcrdate != pcrdate) {

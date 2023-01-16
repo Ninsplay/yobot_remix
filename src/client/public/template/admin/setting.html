@@ -1,186 +1,173 @@
 <!DOCTYPE html>
 
 <head>
-    <title>yobot设置</title>
-    <meta charset="utf-8" content='width=660' name='viewport'/>
-    <script src="/yobot-depencency/vue@2.6.11/dist/vue.min.js"></script>
-    <script src="/yobot-depencency/axios@0.19.2/dist/axios.min.js"></script>
-    <script src="/yobot-depencency/element-ui@2.13.0/lib/index.js"></script>
-    <link href="/yobot-depencency/element-ui@2.13.0/lib/theme-chalk/index.css" rel="stylesheet">
-    <style>
-        .el-input {
-            width: 100%;
-        }
-    </style>
+  <title>yobot设置</title>
+  <meta name='viewport' content='width=660' charset="utf-8" />
+  <script src="/yobot-depencency/vue@2.6.11/dist/vue.min.js"></script>
+  <script src="/yobot-depencency/axios@0.19.2/dist/axios.min.js"></script>
+  <script src="/yobot-depencency/element-ui@2.13.0/lib/index.js"></script>
+  <link rel="stylesheet" href="/yobot-depencency/element-ui@2.13.0/lib/theme-chalk/index.css">
+  <style>
+    .el-input {
+      width: 100%;
+    }
+  </style>
 </head>
 
 <body>
-<h1>yobot设置</h1>
-<div id="app">
-    <el-button @click="location='{{ url_for('yobot_user') }}'" circle icon="el-icon-back" type="primary"></el-button>
+  <h1>yobot设置</h1>
+  <div id="app">
+    <el-button type="primary" icon="el-icon-back" @click="location='{{ url_for('yobot_user') }}'" circle></el-button>
     <el-form label-position="left" label-width="160px">
-        <el-form-item label="此站点的公开地址">
-            <el-input placeholder="http://" v-model="setting.public_address"></el-input>
-        </el-form-item>
-        <el-form-item>
-            <el-button @click="setting.public_address = window.location.origin+'/'" type="info">填入当前地址</el-button>
-            <el-button @click="domainApply = true" type="info">获取 yobot 域名</el-button>
-        </el-form-item>
-        <el-dialog :visible.sync="domainApply" title="申请yobot域名">
-            <el-form>
-                <el-form-item label="域名" label-width="120">
-                    <el-input maxlength="16" placeholder="字母、数字" show-word-limit v-model="applyName">
-                        <el-select placeholder="选择后缀" slot="append" style="width: 150px" v-model="domain">
-                            <el-option label=".yobot.club" value=".yobot.club"></el-option>
-                            <el-option label=".xcw.best" value=".xcw.best"></el-option>
-                        </el-select>
-                    </el-input>
-                </el-form-item>
-            </el-form>
-            <div class="dialog-footer" slot="footer">
-                <el-button @click="domainApply = false">取消</el-button>
-                <el-button :loading="loading" @click="sendApply('{{ url_for('yobot_api_getdomain') }}')" type="primary">
-                    申请
-                </el-button>
-            </div>
-        </el-dialog>
-        <el-form-item label="此站点的URL前缀">
-            <el-input placeholder="/yobot/" v-model="setting.public_basepath"></el-input>
-        </el-form-item>
-        <el-form-item label="主页展示备案号">
-            <el-checkbox v-model="setting.show_icp"></el-checkbox>
-        </el-form-item>
-        <el-form-item :hidden="!setting.show_icp" label="icp备案号">
-            <el-input placeholder="icp备案号，例：京ICP备00000000号-1" v-model="setting.icp_info"></el-input>
-        </el-form-item>
-        <el-form-item :hidden="!setting.show_icp" label="公安备案号">
-            <el-input placeholder="公安备案号，例：京公网安备00000000000000号" v-model="setting.gongan_info"></el-input>
-        </el-form-item>
-        <el-form-item label="使用指令前缀">
-            <el-checkbox v-model="setting.preffix_on"></el-checkbox>
-        </el-form-item>
-        <el-form-item :hidden="!setting.preffix_on" label="前缀">
-            <el-input placeholder="#" v-model="setting.preffix_string"></el-input>
-        </el-form-item>
-        <el-form-item label="接受繁中输入">
-            <el-checkbox v-model="setting.zht_in"></el-checkbox>
-        </el-form-item>
-        <el-form-item label="输出转化为繁中">
-            <el-checkbox v-model="setting.zht_out"></el-checkbox>
-        </el-form-item>
-        <el-form-item :hidden="!setting.zht_out" label="转化为繁中风格">
-            <el-select placeholder="转化风格" v-model="setting.zht_out_style">
-                <el-option label="普通" value="s2t"></el-option>
-                <el-option label="台湾" value="s2tw"></el-option>
-                <el-option label="香港" value="s2hk"></el-option>
-            </el-select>
-        </el-form-item>
-        <el-form-item label="机器人主人">
-            <el-input placeholder="QQ号" v-for="(sadmin,i) in setting['super-admin']"
-                      v-model.number="setting['super-admin'][i]"></el-input>
-        </el-form-item>
-        <el-form-item>
-            <el-button @click="setting['super-admin'].push(null)" icon="el-icon-circle-plus-outline" size="mini">添加
-            </el-button>
-            <el-button @click="setting['super-admin'].pop()" icon="el-icon-remove-outline" size="mini">删除</el-button>
-        </el-form-item>
-        <el-form-item label="机器人黑名单（QQ号）">
-            <el-input placeholder="QQ号" v-for="(black,i) in setting['black-list']"
-                      v-model.number="setting['black-list'][i]"></el-input>
-        </el-form-item>
-        <el-form-item>
-            <el-button @click="setting['black-list'].push(null)" icon="el-icon-circle-plus-outline" size="mini">添加
-            </el-button>
-            <el-button @click="setting['black-list'].pop()" icon="el-icon-remove-outline" size="mini">删除</el-button>
-        </el-form-item>
-        <el-form-item label="群消息过滤">
-            <el-radio-group v-model="setting.white_list_mode">
-                <el-switch active-text="白名单模式" inactive-text="黑名单模式"
-                           v-model="setting.white_list_mode"></el-switch>
-            </el-radio-group>
-        </el-form-item>
-        <el-form-item :hidden="setting.white_list_mode" label="机器人黑名单（QQ群号）">
-            <el-input placeholder="QQ群号" v-for="(black,i) in setting['black-list-group']"
-                      v-model.number="setting['black-list-group'][i]"></el-input>
-        </el-form-item>
-        <el-form-item :hidden="setting.white_list_mode">
-            <el-button @click="setting['black-list-group'].push(null)" icon="el-icon-circle-plus-outline" size="mini">添加
-            </el-button>
-            <el-button @click="setting['black-list-group'].pop()" icon="el-icon-remove-outline" size="mini">删除
-            </el-button>
-        </el-form-item>
-        <el-form-item :hidden="!setting.white_list_mode" label="机器人白名单（QQ群号）">
-            <el-input placeholder="QQ群号" v-for="(white,i) in setting['white-list-group']"
-                      v-model.number="setting['white-list-group'][i]"></el-input>
-        </el-form-item>
-        <el-form-item :hidden="!setting.white_list_mode">
-            <el-button @click="setting['white-list-group'].push(null)" icon="el-icon-circle-plus-outline" size="mini">添加
-            </el-button>
-            <el-button @click="setting['white-list-group'].pop()" icon="el-icon-remove-outline" size="mini">删除
-            </el-button>
-        </el-form-item>
-        <el-form-item label="允许进行批量私聊">
-            <el-checkbox v-model="setting.allow_bulk_private"></el-checkbox>
-        </el-form-item>
+      <el-form-item label="此站点的公开地址">
+        <el-input v-model="setting.public_address" placeholder="http://"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="info" @click="setting.public_address = window.location.origin+'/'">填入当前地址</el-button>
+        <el-button type="info" @click="domainApply = true">获取 yobot 域名</el-button>
+      </el-form-item>
+      <el-dialog title="申请yobot域名" :visible.sync="domainApply">
+        <el-form>
+          <el-form-item label="域名" label-width="120">
+            <el-input v-model="applyName" placeholder="字母、数字" maxlength="16" show-word-limit>
+              <el-select v-model="domain" slot="append" placeholder="选择后缀" style="width: 150px">
+                <el-option label=".yobot.club" value=".yobot.club"></el-option>
+                <el-option label=".xcw.best" value=".xcw.best"></el-option>
+              </el-select>
+            </el-input>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="domainApply = false">取消</el-button>
+          <el-button type="primary" @click="sendApply('{{ url_for('yobot_api_getdomain') }}')" :loading="loading">
+            申请</el-button>
+        </div>
+      </el-dialog>
+      <el-form-item label="此站点的URL前缀">
+        <el-input v-model="setting.public_basepath" placeholder="/yobot/"></el-input>
+      </el-form-item>
+      <el-form-item label="主页展示备案号">
+        <el-checkbox v-model="setting.show_icp"></el-checkbox>
+      </el-form-item>
+      <el-form-item label="icp备案号" :hidden="!setting.show_icp">
+        <el-input v-model="setting.icp_info" placeholder="icp备案号，例：京ICP备00000000号-1"></el-input>
+      </el-form-item>
+      <el-form-item label="公安备案号" :hidden="!setting.show_icp">
+        <el-input v-model="setting.gongan_info" placeholder="公安备案号，例：京公网安备00000000000000号"></el-input>
+      </el-form-item>
+      <el-form-item label="使用指令前缀">
+        <el-checkbox v-model="setting.preffix_on"></el-checkbox>
+      </el-form-item>
+      <el-form-item label="前缀" :hidden="!setting.preffix_on">
+        <el-input v-model="setting.preffix_string" placeholder="#"></el-input>
+      </el-form-item>
+      <el-form-item label="接受繁中输入">
+        <el-checkbox v-model="setting.zht_in"></el-checkbox>
+      </el-form-item>
+      <el-form-item label="输出转化为繁中">
+        <el-checkbox v-model="setting.zht_out"></el-checkbox>
+      </el-form-item>
+      <el-form-item label="转化为繁中风格" :hidden="!setting.zht_out">
+        <el-select v-model="setting.zht_out_style" placeholder="转化风格">
+          <el-option label="普通" value="s2t"></el-option>
+          <el-option label="台湾" value="s2tw"></el-option>
+          <el-option label="香港" value="s2hk"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="机器人主人">
+        <el-input v-for="(sadmin,i) in setting['super-admin']" v-model.number="setting['super-admin'][i]"
+          placeholder="QQ号"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button size="mini" icon="el-icon-circle-plus-outline" @click="setting['super-admin'].push(null)">添加
+        </el-button>
+        <el-button size="mini" icon="el-icon-remove-outline" @click="setting['super-admin'].pop()">删除 </el-button>
+      </el-form-item>
+      <el-form-item label="机器人黑名单（QQ号）">
+        <el-input v-for="(black,i) in setting['black-list']" v-model.number="setting['black-list'][i]"
+          placeholder="QQ号"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button size="mini" icon="el-icon-circle-plus-outline" @click="setting['black-list'].push(null)">添加
+        </el-button>
+        <el-button size="mini" icon="el-icon-remove-outline" @click="setting['black-list'].pop()">删除</el-button>
+      </el-form-item>
+      <el-form-item label="群消息过滤">
+        <el-radio-group v-model="setting.white_list_mode">
+          <el-switch v-model="setting.white_list_mode" active-text="白名单模式" inactive-text="黑名单模式"></el-switch>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="机器人黑名单（QQ群号）" :hidden="setting.white_list_mode">
+        <el-input v-for="(black,i) in setting['black-list-group']" v-model.number="setting['black-list-group'][i]"
+          placeholder="QQ群号"></el-input>
+      </el-form-item>
+      <el-form-item :hidden="setting.white_list_mode">
+        <el-button size="mini" icon="el-icon-circle-plus-outline" @click="setting['black-list-group'].push(null)">添加
+        </el-button>
+        <el-button size="mini" icon="el-icon-remove-outline" @click="setting['black-list-group'].pop()">删除</el-button>
+      </el-form-item>
+      <el-form-item label="机器人白名单（QQ群号）" :hidden="!setting.white_list_mode">
+        <el-input v-for="(white,i) in setting['white-list-group']" v-model.number="setting['white-list-group'][i]"
+          placeholder="QQ群号"></el-input>
+      </el-form-item>
+      <el-form-item :hidden="!setting.white_list_mode">
+        <el-button size="mini" icon="el-icon-circle-plus-outline" @click="setting['white-list-group'].push(null)">添加
+        </el-button>
+        <el-button size="mini" icon="el-icon-remove-outline" @click="setting['white-list-group'].pop()">删除</el-button>
+      </el-form-item>
+      <el-form-item label="允许进行批量私聊">
+        <el-checkbox v-model="setting.allow_bulk_private"></el-checkbox>
+      </el-form-item>
     </el-form>
     <p>
-        <el-collapse @change="bossSetting = !bossSetting" v-model="activeNames">
-            <el-collapse-item name="1" title="boss设置（点击展开）">
-    <div :hidden="!bossSetting">
-        <div style="margin-bottom: 5%;" v-for="area_health, area in setting.boss">
-            <h4 style="margin-bottom: -2%;">[[ {jp:"日服",tw:"台服",cn:"国服",eff:"得分系数"}[area] ]]</h4>
-            <table>
+      <el-collapse v-model="activeNames" @change="bossSetting = !bossSetting">
+        <el-collapse-item title="boss设置（点击展开）" name="1">
+          <div :hidden="!bossSetting">
+            <div v-for="area_health, area in setting.boss" style="margin-bottom: 5%;">
+              <h4 style="margin-bottom: -2%;">[[ {jp:"日服",tw:"台服",cn:"国服",eff:"得分系数"}[area] ]]</h4>
+              <table>
                 <tr>
-                    <th></th>
-                    <th v-for="k in 5">[[k]]号boss</th>
+                  <th></th>
+                  <th v-for="k in 5">[[k]]号boss</th>
                 </tr>
                 <tr>
-                    <th></th>
-                    <th v-for="boss_num in 5">
-                        <el-select filterable placeholder="选择boss" style="width: 120px;"
-                                   v-model="setting.boss_id[area][boss_num-1]">
-                            <el-option :key="id" :label="name" :value="id"
-                                       v-for="(name, id) in boss_id_name[String(boss_num)]">
-                                <img :src="'/yobot-depencency/yocool@final/princessadventure/boss_icon/' + id + '.webp'"
-                                     style="float: left;width: 30px;height: 30px; margin-right: 5px;">[[name]]
-                            </el-option>
-                        </el-select>
-                    </th>
+                  <th></th>
+                  <th v-for="boss_num in 5">
+                    <el-select style="width: 120px;" v-model="setting.boss_id[area][boss_num-1]" filterable placeholder="选择boss">
+                      <el-option v-for="(name, id) in boss_id_name[String(boss_num)]" :key="id" :label="name" :value="id">
+                        <img :src="'/yobot-depencency/yocool@final/princessadventure/boss_icon/' + id + '.webp'" style="float: left;width: 30px;height: 30px; margin-right: 5px;">[[name]]
+                      </el-option>
+                    </el-select>
+                  </th>
                 </tr>
                 <tr v-for="level, k in area_health">
-                    <td>[[k+1]]阶段</td>
-                    <td v-for="health, b in level">
-                        <el-input placeholder="boss血量" style="width: 120px;" v-model.number="area_health[k][b]"/>
-                    </td>
-                    <br>
+                  <td>[[k+1]]阶段</td>
+                  <td v-for="health, b in level">
+                    <el-input style="width: 120px;" v-model.number="area_health[k][b]" placeholder="boss血量"/>
+                  </td>
+                  <br>
 
-                    <td>
-                        <el-input placeholder="周目" style="width: 60px;"
-                                  v-model.number="setting.level_by_cycle[area][k][0]"/>
-                    </td>
-                    <td>-</td>
-                    <td>
-                        <el-input placeholder="周目" style="width: 60px;"
-                                  v-model.number="setting.level_by_cycle[area][k][1]"/>
-                    </td>
-                    <td>周目</td>
+                  <td><el-input style="width: 60px;" v-model.number="setting.level_by_cycle[area][k][0]" placeholder="周目"/></td>
+                  <td>-</td>
+                  <td><el-input style="width: 60px;" v-model.number="setting.level_by_cycle[area][k][1]" placeholder="周目"/></td>
+                  <td>周目</td>
                 </tr>
-            </table>
-            <el-button @click="add_level(area)" size="mini">添加阶段数</el-button>
-            <el-button @click="remove_level(area)" size="mini">删除阶段数</el-button>
-        </div>
-    </div>
-    </el-collapse-item>
-    </el-collapse>
+              </table>
+              <el-button size="mini" @click="add_level(area)">添加阶段数</el-button>
+              <el-button size="mini" @click="remove_level(area)">删除阶段数</el-button>
+            </div>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
     </p>
     <p>
-        <el-button @click="update" type="success">确定</el-button>
+      <el-button type="success" @click="update">确定</el-button>
     </p>
-</div>
+  </div>
 </body>
 <script>
-    var api_path = "{{ url_for('yobot_setting_api') }}";
-    var csrf_token = "{{ session['csrf_token'] }}";
+  var api_path = "{{ url_for('yobot_setting_api') }}";
+  var csrf_token = "{{ session['csrf_token'] }}";
 </script>
 <script src="{{ url_for('yobot_static', filename='admin/setting.js') }}"></script>
 

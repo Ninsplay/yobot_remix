@@ -23,57 +23,57 @@ var vm = new Vue({
         members: [],
         range: '',
         pickerOptions: {
-            shortcuts: [{
-                text: '最近一周',
-                onClick(picker) {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                    start.setHours(0, 0, 0, 0);
-                    end.setHours(0, 0, 0, 0);
-                    picker.$emit('pick', [start, end]);
-                }
-            }, {
-                text: '最近半个月',
-                onClick(picker) {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 15);
-                    start.setHours(0, 0, 0, 0);
-                    end.setHours(0, 0, 0, 0);
-                    picker.$emit('pick', [start, end]);
-                }
-            }, {
-                text: '最近一个月',
-                onClick(picker) {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                    start.setHours(0, 0, 0, 0);
-                    end.setHours(0, 0, 0, 0);
-                    picker.$emit('pick', [start, end]);
-                }
-            }, {
-                text: '最近三个月',
-                onClick(picker) {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                    start.setHours(0, 0, 0, 0);
-                    end.setHours(0, 0, 0, 0);
-                    picker.$emit('pick', [start, end]);
-                }
-            }, {
-                text: '最近一年',
-                onClick(picker) {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 365);
-                    start.setHours(0, 0, 0, 0);
-                    end.setHours(0, 0, 0, 0);
-                    picker.$emit('pick', [start, end]);
-                }
-            }]
+          shortcuts: [{
+            text: '最近一周',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+              start.setHours(0, 0, 0, 0);
+              end.setHours(0, 0, 0, 0);
+              picker.$emit('pick', [start, end]);
+            }
+          }, {
+            text: '最近半个月',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 15);
+              start.setHours(0, 0, 0, 0);
+              end.setHours(0, 0, 0, 0);
+              picker.$emit('pick', [start, end]);
+            }
+          },  {
+            text: '最近一个月',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+              start.setHours(0, 0, 0, 0);
+              end.setHours(0, 0, 0, 0);
+              picker.$emit('pick', [start, end]);
+            }
+          }, {
+            text: '最近三个月',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+              start.setHours(0, 0, 0, 0);
+              end.setHours(0, 0, 0, 0);
+              picker.$emit('pick', [start, end]);
+            }
+          }, {
+            text: '最近一年',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 365);
+              start.setHours(0, 0, 0, 0);
+              end.setHours(0, 0, 0, 0);
+              picker.$emit('pick', [start, end]);
+            }
+          }]
         },
         allChallenges: [],
         activeIndex: '4',
@@ -84,9 +84,11 @@ var vm = new Vue({
         containTailAndContinue: true,
         globalTableData: [],
         playerData: {
-            damage: [],
+            damage: [
+                
+            ],
         },
-        colorList: ['#c23531', '#2f4554', '#61a0a8', '#d48265', '#91c7ae', '#749f83', '#ca8622', '#bda29a', '#6e7074', '#546570', '#c4ccd3'],
+        colorList: ['#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'],                
         challengeChart: null,
         bossDmgChart: null,
         missChart: null,
@@ -117,18 +119,18 @@ var vm = new Vue({
         this.fetchData();
     },
     watch: {
-        containTailAndContinue: function () {
+        containTailAndContinue: function() {
             this.init();
         },
-        selectingQQid: function () {
+        selectingQQid: function() {
             this.initChart(this.playerDamage(this.selectingQQid).bossDamageList);
             this.initPlayerData();
         },
-        selectingTab: function () {
+        selectingTab: function() {
             this.init();
             setTimeout("vm.resizeAll()", 100);
         },
-        range: function () {
+        range: function() {
             this.refreshData();
             this.init();
         },
@@ -141,13 +143,11 @@ var vm = new Vue({
             iterable.forEach(v => sum += v);
             return sum;
         },
-        formatTo2: (num) => {
-            return (num >= 10) ? num.toString() : '0' + num.toString()
-        },
+        formatTo2: (num) => { return (num >= 10) ?  num.toString() : '0' + num.toString() },
 
-        fetchData: function () {
+        fetchData: function() {
             const that = this;
-            axios.get('../api/').then(res => {
+            axios.get('../api/').then(res=> {
                 if (res.data.code != 0) {
                     that.$alert(res.data.message, '获取记录失败');
                     that.isLoading = false;
@@ -155,9 +155,7 @@ var vm = new Vue({
                 }
                 that.allChallenges = res.data.challenges;
                 that.members = res.data.members;
-                if (that.members.filter((elem) => {
-                    return elem.qqid == that.selectingQQid
-                }).length == 0) {
+                if (that.members.filter((elem) => {return elem.qqid == that.selectingQQid}).length == 0) {
                     that.selectingQQid = that.members[0].qqid;
                 }
                 that.refreshData();
@@ -169,16 +167,14 @@ var vm = new Vue({
             });
         },
 
-        filtedChallenge: function () {
+        filtedChallenge: function() {
             if (!this.range) return this.allChallenges;
             const leftRange = this.range[0].getTime() / 1000 + 18000;
             const rightRange = this.range[1].getTime() / 1000 + 18000 + 86400;
-            return this.allChallenges.filter((elem) => {
-                return elem.challenge_time <= rightRange && elem.challenge_time >= leftRange
-            });
+            return this.allChallenges.filter((elem) => {return elem.challenge_time <= rightRange && elem.challenge_time >= leftRange});
         },
 
-        refreshData: function () {
+        refreshData: function() {
             this.challenges = this.filtedChallenge();
             this.challengeMap = {};
             for (let challenge of this.challenges) {
@@ -197,21 +193,23 @@ var vm = new Vue({
             this.isLoading = false;
         },
 
-        init: function () {
+        init: function() {
             this.initTotalDamage();
             this.initPlayerDamage();
             this.initGlobalTableData();
             this.initPlayerData();
             if (this.selectingTab === 'total') {
                 this.initChart(this.totalDamage.bossDamageList);
-            } else if (this.selectingTab === 'channel') {
+            }
+            else if (this.selectingTab === 'channel') {
                 this.initChart(this.totalDamage.bossDamageList);
-            } else {
+            }
+            else {
                 this.initChart(this.playerDamage(this.selectingQQid).bossDamageList);
             }
         },
         // function for init
-        initChart: function (bossDamageList) {
+        initChart: function(bossDamageList) {
             let temp = this.bossAverageDamageForChart(bossDamageList, this.containTailAndContinue);
             let option = {
                 title: {
@@ -365,7 +363,7 @@ var vm = new Vue({
                         label: {
                             formatter: params => {
                                 if (params.axisDimension === "x") {
-                                    return (new Date(params.value)).toLocaleString(options = {timeZone: 'asia/shanghai'});
+                                    return (new Date(params.value)).toLocaleString(options = { timeZone: 'asia/shanghai' });
                                 }
                                 if (params.axisDimension === "y") {
                                     return params.value.toLocaleString();
@@ -377,8 +375,8 @@ var vm = new Vue({
                     formatter: (params) => {
                         const series = params[0];
                         const [ts, value] = series.data;
-                        const matched = temp6[1].find(f => (!f.gte || f.gte <= ts) && (!f.lt || f.lt > ts));
-                        return `${(new Date(ts)).toLocaleString(options = {timeZone: 'asia/shanghai'})}<br />${series.marker}${(matched && matched.label) + "<br />" || ""}血量：${value.toLocaleString()}`
+                        const matched = temp6[1].find(f => (!f.gte || f.gte  <= ts) && (!f.lt || f.lt > ts));
+                        return `${(new Date(ts)).toLocaleString(options = { timeZone: 'asia/shanghai' })}<br />${series.marker}${(matched && matched.label) + "<br />" || ""}血量：${value.toLocaleString()}`
                     }
                 },
                 toolbox: {
@@ -470,8 +468,8 @@ var vm = new Vue({
                     seriesIndex: 0,
                     pieces: [
                         {lte: 5, label: '凌晨', color: 'grey'},
-                        {gt: 5, lte: 12, label: '上午', color: '#9cc5b0'},
-                        {gt: 12, lte: 18, label: '下午', color: '#c54730'},
+                        {gt: 5,lte: 12, label: '上午', color: '#9cc5b0'},
+                        {gt: 12,lte: 18, label: '下午', color: '#c54730'},
                         {gt: 18, label: '晚上', color: '#384b5a'},
                     ]
                 }],
@@ -611,18 +609,16 @@ var vm = new Vue({
             this.sumDmgChart.setOption(option3);
             this.missChart.setOption(option4);
             this.lastChart.setOption(option5);
-            try {
+            try{
                 // 这里有时会出现一个错误，原因未知
                 this.bossBloodChart.setOption(option6);
-            } catch (e) {
-                console.error(e)
-            }
+            }catch(e){console.error(e)}
             this.totalTimeChart.setOption(option7);
             this.bossHitChart.setOption(option8);
             this.totalDamageChart.setOption(option9);
         },
 
-        resizeAll: function () {
+        resizeAll: function() {
             this.sumDmgChart.resize();
             this.missChart.resize();
             this.lastChart.resize();
@@ -634,7 +630,7 @@ var vm = new Vue({
             this.totalDamageChart.resize();
         },
 
-        initPlayerData: function () {
+        initPlayerData: function() {
             let max = 0, min = 2147483647, s = [0, 0, 0], c = [0, 0, 0];
             let pchallenge = this.challengeMap[this.selectingQQid];
             if (pchallenge != undefined) {
@@ -645,16 +641,15 @@ var vm = new Vue({
                         let damage = 0;
                         if (clist[i].health_remain != 0) {
                             damage = clist[i].damage;
-                        } else if (clist[i + 1] && clist[i + 1].is_continue) {
-                            damage = clist[i].damage + clist[i + 1].damage
+                        } 
+                        else if (clist[i+1] && clist[i+1].is_continue) {
+                            damage = clist[i].damage + clist[i+1].damage
                             i++;
                         }
                         if (max < damage) max = damage;
                         if (min > damage) min = damage;
                         dmglist.push(damage);
-                        dmglist.sort((a, b) => {
-                            return b - a
-                        });
+                        dmglist.sort((a, b) => {return b - a});
                     }
                     for (let i = 0; i < dmglist.length; i++) {
                         s[i] += dmglist[i];
@@ -709,8 +704,8 @@ var vm = new Vue({
                     seriesIndex: 0,
                     pieces: [
                         {lte: 5, label: '凌晨', color: 'grey'},
-                        {gt: 5, lte: 12, label: '上午', color: '#9cc5b0'},
-                        {gt: 12, lte: 18, label: '下午', color: '#c54730'},
+                        {gt: 5,lte: 12, label: '上午', color: '#9cc5b0'},
+                        {gt: 12,lte: 18, label: '下午', color: '#c54730'},
                         {gt: 18, label: '晚上', color: '#384b5a'},
                     ]
                 }],
@@ -728,7 +723,7 @@ var vm = new Vue({
             const param2 = this.dayDamageForChart(playerChalls);
             const option2 = {
                 title: {
-                    text: "伤害成长曲线"
+                  text: "伤害成长曲线"
                 },
                 xAxis: {
                     type: 'category',
@@ -767,28 +762,14 @@ var vm = new Vue({
 
         },
 
-        initTotalDamage: function () {
+        initTotalDamage: function() {
             this.totalDamage = [];
             let bossDamageList = {};
-            let result = {
-                normalDamage: [],
-                continueDamage: [],
-                tailDamage: [],
-                count: 0,
-                countContinue: 0,
-                countTail: 0
-            };
+            let result = {normalDamage: [], continueDamage: [], tailDamage: [], count: 0, countContinue: 0, countTail: 0};
             for (let challenge of this.challenges) {
                 let dict = bossDamageList[challenge.boss_num];
                 if (dict == undefined) {
-                    dict = {
-                        normalDamage: [],
-                        continueDamage: [],
-                        tailDamage: [],
-                        count: 0,
-                        countContinue: 0,
-                        countTail: 0
-                    }
+                    dict = {normalDamage: [], continueDamage: [], tailDamage: [], count: 0, countContinue: 0, countTail: 0}
                     bossDamageList[challenge.boss_num] = dict;
                 }
                 let damage = challenge.damage;
@@ -820,26 +801,12 @@ var vm = new Vue({
                 const playerQQid = elem.qqid;
                 let challenges = this.challengeMap[playerQQid];
                 let bossDamageList = {};
-                let result = {
-                    normalDamage: [],
-                    continueDamage: [],
-                    tailDamage: [],
-                    count: 0,
-                    countContinue: 0,
-                    countTail: 0
-                };
+                let result = {normalDamage: [], continueDamage: [], tailDamage: [], count: 0, countContinue: 0, countTail: 0};
                 for (let day in challenges) {
                     for (let challenge of challenges[day]) {
                         let dict = bossDamageList[challenge.boss_num];
                         if (dict == undefined) {
-                            dict = {
-                                normalDamage: [],
-                                continueDamage: [],
-                                tailDamage: [],
-                                count: 0,
-                                countContinue: 0,
-                                countTail: 0
-                            }
+                            dict = {normalDamage: [], continueDamage: [], tailDamage: [], count: 0, countContinue: 0, countTail: 0}
                             bossDamageList[challenge.boss_num] = dict;
                         }
                         let damage = challenge.damage;
@@ -895,10 +862,10 @@ var vm = new Vue({
             let date = new Date((ts - 18000) * 1000);
             return date.getFullYear() + '-' + this.formatTo2(date.getMonth() + 1) + '-' + this.formatTo2(date.getDate());
         },
-        sortChallengeByTime: function (c1, c2) {
+        sortChallengeByTime: function(c1, c2) {
             return c1.challenge_time - c2.challenge_time;
         },
-        sortAndDivide: function () {
+        sortAndDivide: function() {
             for (let m of this.members) {
                 let detail = {};
                 let challenges = m.challenges;
@@ -919,14 +886,14 @@ var vm = new Vue({
             }
         },
 
-        totalAverageDamage: function (containTailAndContinue = false) {
+        totalAverageDamage: function(containTailAndContinue = false) {
             return this.averageDamage(this.totalDamage, containTailAndContinue);
         },
-        playerAverageDamage: function (playerQQid, containTailAndContinue = false) {
+        playerAverageDamage: function(playerQQid, containTailAndContinue = false) {
             return this.averageDamage(this.playerDamage(playerQQid), containTailAndContinue);
         },
 
-        bossAverageDamageForChart: function (bossDamageList, containTailAndContinue = false) {
+        bossAverageDamageForChart: function(bossDamageList, containTailAndContinue = false) {
             let l1 = [], l2 = [];
             for (let index in bossDamageList) {
                 let damage = bossDamageList[index];
@@ -938,12 +905,12 @@ var vm = new Vue({
             }
             return [l1, l2];
         },
-        bossMissForChart: function (globalTableData) {
+        bossMissForChart: function(globalTableData) {
             const counts = globalTableData.map(elem => elem.count);
             const names = globalTableData.map(elem => elem.nickname);
             return [names, counts];
         },
-        bossLastForChart: function () {
+        bossLastForChart: function() {
             const map = {};
             for (const i in this.challenges) {
                 if (this.challenges[i].is_continue) {
@@ -956,7 +923,7 @@ var vm = new Vue({
             }
             return Object.keys(map).map(name => ({name: name, value: map[name]}));
         },
-        bossBloodForChart: function () {
+        bossBloodForChart: function() {
             const challs = this.challenges.sort((a, b) => a.challenge_time - b.challenge_time);
             let bosses = [];
             let nowBoss, lastPosition, lastCircle;
@@ -989,7 +956,7 @@ var vm = new Vue({
             }
             return [challs.map(c => [c.challenge_time * 1000, c.health_remain]), bosses];
         },
-        bossSumDamageForChart: function (bossDamageList) {
+        bossSumDamageForChart: function(bossDamageList) {
             let l1 = [], l2 = [];
             for (let index in bossDamageList) {
                 let damage = bossDamageList[index];
@@ -1001,7 +968,7 @@ var vm = new Vue({
             }
             return [l1, l2];
         },
-        bossChallengeCountForChart: function (bossDamageList, containTailAndContinue = false) {
+        bossChallengeCountForChart: function(bossDamageList, containTailAndContinue = false) {
             let l1 = []
             for (let index in bossDamageList) {
                 let damage = bossDamageList[index];
@@ -1010,7 +977,7 @@ var vm = new Vue({
             }
             return l1;
         },
-        bossPlayerHitCountForChart: function () {
+        bossPlayerHitCountForChart: function() {
             const names = [], counter = {};
             const hanzi = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
             const maxBossNum = Math.max.apply(Math, [0, ...this.challenges.map(c => c.boss_num)]);
@@ -1053,7 +1020,7 @@ var vm = new Vue({
                 })
             ];
         },
-        timeForChart: function (challenges) {
+        timeForChart: function(challenges) {
             const time = {};
             [...Array(24).keys()].forEach(i => time[i] = 0);
             for (const i in challenges) {
@@ -1062,7 +1029,7 @@ var vm = new Vue({
             }
             return Object.values(time);
         },
-        dayDamageForChart: function (challenges) {
+        dayDamageForChart: function(challenges) {
             const dates = {};
             challenges.forEach(c => {
                 const date = this.tsToDay(c.challenge_time);
@@ -1078,7 +1045,7 @@ var vm = new Vue({
             );
         },
 
-        membersDamageForChart: function (globalTableData) {
+        membersDamageForChart: function(globalTableData) {
             const data = globalTableData.sort((a, b) => b.sumDmg - a.sumDmg);
             const full = data.map(elem => elem.sumDmg);
             const average = data.map(elem => elem.avgDmg);
@@ -1086,7 +1053,7 @@ var vm = new Vue({
             return [names, full, average];
         },
 
-        averageDamage: function (damage, containTailAndContinue) {
+        averageDamage: function(damage, containTailAndContinue) {
             let sum = this.sum(damage.normalDamage);
             let count = damage.count;
             if (containTailAndContinue) {
@@ -1096,25 +1063,25 @@ var vm = new Vue({
             return Math.floor(sum / count);
         },
 
-        totalSumDamage: function () {
+        totalSumDamage: function() {
             return this.sumDamage(this.totalDamage);
         },
-        playerSumDamage: function (playerQQid) {
+        playerSumDamage: function(playerQQid) {
             return this.sumDamage(this.playerDamage(playerQQid));
         },
-        sumDamage: function (damage) {
+        sumDamage: function(damage) {
             return this.sum(damage.normalDamage) + this.sum(damage.continueDamage) + this.sum(damage.tailDamage);
         },
 
-        challengeCount: function (damage, containTailAndContinue) {
+        challengeCount: function(damage, containTailAndContinue) {
             return damage.count + (containTailAndContinue ? (damage.countTail + damage.countContinue) / 2 : 0);
         },
 
-        getPlayer: function (qqid) {
-            return this.members.find(o => o.qqid === qqid) || {nickname: '未加入', qqid: qqid, sl: null};
+        getPlayer: function(qqid) {
+            return this.members.find(o => o.qqid === qqid) || {nickname:'未加入',qqid:qqid,sl:null};
         },
 
-        playerDamage: function (playerQQid) {
+        playerDamage: function(playerQQid) {
             return this.playerDamages[playerQQid];
         },
         getToday: function () {

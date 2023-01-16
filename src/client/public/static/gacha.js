@@ -16,11 +16,9 @@ var progress = false;
         [experience.star3, experience.star2, experience.star1, experience.diamond] = h.split(',').map(x => +x);
     }
 })();
-
 function randarr(arr) {
     return String(arr[Math.floor(Math.random() * arr.length)]);
 }
-
 function pick(i) {
     var x = Math.random();
     if (x < 0.025) {
@@ -36,11 +34,9 @@ function pick(i) {
     experience.star1 += 1;
     return randarr(pool[2]) + '11';
 }
-
 function sleep(time) {
     return new Promise((resolve) => setTimeout(resolve, time));
 }
-
 async function reload() {
     var container = document.getElementById('container');
     container.innerHTML = '';
@@ -56,7 +52,6 @@ async function reload() {
     }
     experience.diamond += 1500;
 }
-
 async function gacha() {
     if (progress) {
         return;

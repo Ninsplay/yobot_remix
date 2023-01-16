@@ -17,7 +17,7 @@ var vm = new Vue({
     },
     methods: {
         addpool: function () {
-            let newname = "奖池" + (Object.keys(this.settings.pool).length + 1);
+            let newname = "奖池" + (Object.keys(this.settings.pool).length+1);
             this.$set(this.settings.pool, newname, {
                 prop: 0,
                 prop_last: 0,
