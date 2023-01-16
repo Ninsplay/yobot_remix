@@ -83,12 +83,13 @@ def execute(self, match_num, ctx):
     user_id = ctx['user_id']
     url = urljoin(
         self.setting['public_address'],
-        '{}clan/{}/'.format(self.setting['public_basepath'],
-                            group_id))
+        '{}clan/{}/'.format(self.setting['public_basepath'], group_id)
+    )
 
     if match_num == 1:  # 创建
         match = re.match(r'^创建(?:([日台韩国])服)?[公工行]会$', cmd)
-        if not match: return
+        if not match:
+            return
         game_server = Server.get(match.group(1), 'cn')
         try:
             self.create_group(group_id, game_server)
@@ -120,12 +121,12 @@ def execute(self, match_num, ctx):
             return '{}已加入本公会'.format(atqq(user_id))
 
     elif match_num == 3:  # 状态
-        if cmd != '状态': return
-        try:
-            boss_summary = self.boss_status_summary(group_id)
-        except ClanBattleError as e:
-            return str(e)
-        return boss_summary
+        if cmd in ['状态', '进度']:
+            try:
+                boss_summary = self.boss_status_summary(group_id)
+            except ClanBattleError as e:
+                return str(e)
+            return boss_summary
 
     elif match_num == 4:  # 报刀
         match = re.match(
@@ -179,7 +180,8 @@ def execute(self, match_num, ctx):
         return boss_status
 
     elif match_num == 6:  # 撤销
-        if cmd != '撤销': return
+        if cmd != '撤销':
+            return
         try:
             boss_status = self.undo(group_id, user_id)
         except ClanBattleError as e:
@@ -190,7 +192,8 @@ def execute(self, match_num, ctx):
 
     elif match_num == 7:  # 预约
         match = re.match(r'^预约([1-5]|表) *$', cmd)
-        if not match: return
+        if not match:
+            return
         msg = match.group(1)
         try:
             back_msg = self.subscribe(group_id, user_id, msg)
@@ -202,7 +205,8 @@ def execute(self, match_num, ctx):
 
     elif match_num == 8:  # 业绩
         match = re.match(r'^业绩(表) *$', cmd)
-        if not match: return
+        if not match:
+            return
         try:
             back_msg = self.score_table(group_id)
         except ClanBattleError as e:
@@ -213,13 +217,15 @@ def execute(self, match_num, ctx):
 
     elif match_num == 11:  # 挂树
         match = re.match(r'^挂树 *(?:[\:：](.*))? *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
-        if not match: return
+        if not match:
+            return
         extra_msg = match.group(1)
         behalf = match.group(2) and int(match.group(2))
         behalf = behalf or user_id
         if isinstance(extra_msg, str):
             extra_msg = extra_msg.strip()
-            if not extra_msg: extra_msg = None
+            if not extra_msg:
+                extra_msg = None
         try:
             msg = self.put_on_the_tree(group_id, behalf, extra_msg)
         # if behalf:
@@ -233,7 +239,7 @@ def execute(self, match_num, ctx):
 
     elif match_num == 12:  # 申请
         match = re.match(r'^申请出刀(| )([1-5]) *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
-        if not match: return '申请出刀格式错误惹(っ °Д °;)っ\n如：申请出刀1 or 申请出刀1补偿@xxx'
+        if not match: return '申请出刀格式错误\n例：申请出刀1 or 申请出刀1b 代表补偿\n后接@为别人申请出刀)'
         boss_num = match.group(2)
         is_continue = match.group(3) and True or False
         behalf = match.group(4) and int(match.group(4))
@@ -252,11 +258,11 @@ def execute(self, match_num, ctx):
         match = re.match(
             r'^取消 *([1-5]|挂树|申请出刀|申请|出刀|出刀all|报伤害|sl|SL|预约) *([1-5])? *(?:\[CQ:at,qq=(\d+)\])? *$',
             cmd)
-        if not match: return
+        if not match:
+            return
         b = match.group(1)
         boss_num = match.group(2) and match.group(2)
         behalf = match.group(3) and int(match.group(3))
-        msg = ''
         if behalf:
             user_id = behalf
         if b == '挂树':
@@ -277,15 +283,18 @@ def execute(self, match_num, ctx):
         return msg
 
     elif match_num == 15:  # 面板
-        if len(cmd) != 2: return
+        if len(cmd) != 2:
+            return
         return f'公会战面板：\n{url}\n建议添加到浏览器收藏夹或桌面快捷方式'
 
     elif match_num == 16:  # SL
         match = re.match(r'^(?:SL|sl) *([\?？])? *(?:\[CQ:at,qq=(\d+)\])? *([\?？])? *$', cmd)
-        if not match: return
+        if not match:
+            return
         behalf = match.group(2) and int(match.group(2))
         only_check = bool(match.group(1) or match.group(3))
-        if behalf: user_id = behalf
+        if behalf:
+            user_id = behalf
         # if not self.check_blade(group_id, user_id) and not only_check:
         # 	return '你都没申请出刀，S啥子L啊 (╯‵□′)╯︵┻━┻'
         if only_check:
@@ -295,7 +304,6 @@ def execute(self, match_num, ctx):
             else:
                 return '今日未使用SL'
         else:
-            back_msg = ''
             try:
                 back_msg = self.save_slot(group_id, user_id)
             except ClanBattleError as e:
@@ -307,14 +315,15 @@ def execute(self, match_num, ctx):
     elif match_num == 17:  # 报伤害
         match = re.match(r'^报伤害(?:剩| |)(?:(\d+(?:s|S|秒))?(?:打了| |)(\d+)(?:w|W|万))? *(?:\[CQ:at,qq=(\d+)\])? *$',
                          cmd)
-        if not match: return '格式出错(O×O)，如“报伤害 2s200w”或“报伤害 3s300w@xxx”'
+        if not match:
+            return '格式出错(O×O)，如“报伤害 2s200w”或“报伤害 3s300w@xxx”'
         s = match.group(1) or 1
         if s != 1: s = re.sub(r'([a-z]|[A-Z]|秒)', '', s)
         hurt = match.group(2) and int(match.group(2))
         behalf = match.group(3) and int(match.group(3))
         if behalf: user_id = behalf
         if not self.check_blade(group_id, user_id):
-            return '你都没申请出刀，报啥子伤害啊 (╯‵□′)╯︵┻━┻'
+            return '你还没申请出刀呢'
         return self.report_hurt(int(s), hurt, group_id, user_id)
 
     elif match_num == 18:  # 权限，设置意外无权限用户有权限
@@ -342,3 +351,17 @@ def execute(self, match_num, ctx):
     elif match_num == 19:  # 更改预约模式
         # TODO 19:更改预约模式
         print("完成度0%")
+
+    elif match_num == 20:
+        if cmd[:2] == '查刀' and len(cmd) > 2:
+            match = re.match('^查刀 *(?:\[CQ:at,qq=(\d+)\])?$', cmd)
+            if not match:
+                return
+            user_id = match.group(1) and int(match.group(1))
+            if user_id is None:
+                user_id = ctx['user_id']
+            fin, con, sl = self.get_used_info(user_id, group_id)
+            if finished == 3 and not _continue:
+                return '他已经下班了，塔诺西！'
+            else:
+                return f'他已经出完{fin}刀，手上{f"有{con}刀" if con else "没有"}补偿刀，sl{"已用" if sl else "还在"}'

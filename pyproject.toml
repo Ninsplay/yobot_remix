@@ -15,3 +15,7 @@ apscheduler = ">=3.6,<4.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[[tool.poetry.source]]
+name = 'aliyun.mirrors'
+url = "http://mirrors.aliyun.com/pypi/simple/"
+
