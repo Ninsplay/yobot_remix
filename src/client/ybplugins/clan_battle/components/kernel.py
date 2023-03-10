@@ -10,8 +10,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from .define import Commands, Server
 from ..exception import ClanBattleError
-from ..util import atqq
-from ...ybdata import Clan_group, Clan_member, User
+from ...ybdata import Clan_group, User
 
 _logger = logging.getLogger(__name__)
 
@@ -20,12 +19,13 @@ _logger = logging.getLogger(__name__)
 def init(self,
          glo_setting: Dict[str, Any],
          bot_api: Api,
-         boss_id_name: Dict[str, Any],
-         *args, **kwargs):
+         boss_id_name: Dict[str, Any]):
     self.setting = glo_setting
     self.boss_id_name = boss_id_name
     self.bossinfo = glo_setting['boss']
+    self.level_by_cycle = glo_setting['level_by_cycle']
     self.api = bot_api
+    self.group_data_list = {}
 
     # log
     if not os.path.exists(os.path.join(glo_setting['dirname'], 'log')):
@@ -53,6 +53,16 @@ def init(self,
     User.update({User.authority_group: 1}).where(
         User.qqid.in_(self.setting['super-admin'])
     ).execute()
+
+    from pathlib import Path
+
+    inipath = Path(os.path.dirname(__file__)).parents[2] / 'yobot_data' / 'groups.ini'
+    if not inipath.exists():
+        if not (Path(os.path.dirname(__file__)).parents[2] / 'yobot_data').exists():
+            os.mkdir(str(Path(os.path.dirname(__file__)).parents[2] / 'yobot_data'))
+        inipath.touch()
+        with open(inipath, 'w') as f:
+            f.write('[GROUPS]\n11111 = 22222')
 
 
 # 定时任务
@@ -97,8 +107,17 @@ def execute(self, match_num, ctx):
             _logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
             return str(e)
         _logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
+        from pathlib import Path
+        import configparser
+        inipath = Path(os.path.dirname(__file__)).parents[2] / 'yobot_data' / 'groups.ini'
+        config = configparser.RawConfigParser()
+        config.read(str(inipath))
+        config.set('GROUPS', str(ctx['group_id']), str(ctx['self_id']))
+        with open(str(inipath), 'w') as f:
+            config.write(f)
         return ('公会创建成功，请登录后台查看，公会战成员请发送“加入公会”，'
-                '或管理员发送“加入全部成员”')
+                '或管理员发送“加入全部成员”'
+                '如果无法正常使用网页催刀功能，请发送“手动添加群记录”')
 
     elif match_num == 2:  # 加入
         if cmd == '加入全部成员':
@@ -132,7 +151,11 @@ def execute(self, match_num, ctx):
         match = re.match(
             r'^报刀 ?(?:-([1-5]))? ?(\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
         if not match:
-            return '报刀格式:\n报刀 100w（需先申请出刀以指定几王）\n报刀 -1 100w（-1表示报在1王）'
+        # 尝试使用另外的匹配模式
+            match = re.match(r'^报刀 ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$',
+                             cmd)
+        if not match:
+            return '报刀格式:\n报刀 100w（需先申请出刀以指定几王）\n报刀 -1 100w（-1表示报在1王，-可省略）'
         unit = {
             'W': 10000,
             'w': 10000,
@@ -216,7 +239,7 @@ def execute(self, match_num, ctx):
         return back_msg
 
     elif match_num == 11:  # 挂树
-        match = re.match(r'^挂树 *(?:[\:：](.*))? *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
+        match = re.match(r'^挂树 *(?:[:：](.*))? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
         if not match:
             return
         extra_msg = match.group(1)
@@ -238,7 +261,7 @@ def execute(self, match_num, ctx):
         return msg
 
     elif match_num == 12:  # 申请
-        match = re.match(r'^申请出刀(| )([1-5]) *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
+        match = re.match(r'^申请出刀(| )([1-5]) *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
         if not match:
             return '申请出刀格式错误\n例：申请出刀1 or 申请出刀1b 代表补偿\n后接@为别人申请出刀)'
         boss_num = match.group(2)
@@ -257,8 +280,7 @@ def execute(self, match_num, ctx):
 
     elif match_num == 13:  # 取消
         match = re.match(
-            r'^取消(?:预约)?([1-5]|挂树|申请出刀|申请|出刀|出刀all|报伤害|sl|SL|预约) *([1-5])? *(?:\[CQ:at,qq=(\d+)\])? *$',
-            cmd)
+            r'^取消 *([1-5]|挂树|申请出刀|申请|出刀|出刀all|报伤害|sl|SL|预约) *([1-5])? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
         if not match:
             return
         b = match.group(1)
@@ -266,18 +288,24 @@ def execute(self, match_num, ctx):
         behalf = match.group(3) and int(match.group(3))
         if behalf:
             user_id = behalf
-        if b == '挂树':
-            msg = self.take_it_of_the_tree(group_id, user_id)
-        elif b == '出刀' or b == '申请' or b == '申请出刀':
-            msg = self.cancel_blade(group_id, user_id)
-        elif b == '出刀all':
-            msg = self.cancel_blade(group_id, user_id, cancel_type=0)
-        elif b == '报伤害':
-            msg = self.report_hurt(0, 0, group_id, user_id, 1)
-        elif b == 'sl' or b == 'SL':
-            msg = self.save_slot(group_id, user_id, clean_flag=True)
-        else:
-            msg = self.subscribe_cancel(group_id, boss_num, user_id)
+        try:
+            if b == '挂树':
+                msg = self.take_it_of_the_tree(group_id, user_id)
+            elif b == '出刀' or b == '申请' or b == '申请出刀':
+                msg = self.cancel_blade(group_id, user_id)
+            elif b == '出刀all':
+                msg = self.cancel_blade(group_id, user_id, cancel_type=0)
+            elif b == '报伤害':
+                msg = self.report_hurt(0, 0, group_id, user_id, 1)
+            elif b == 'sl' or b == 'SL':
+                msg = self.save_slot(group_id, user_id, clean_flag=True)
+            elif b == '预约':
+                msg = self.subscribe_cancel(group_id, boss_num, user_id)
+            else:
+                raise InputError("未能识别命令：{}".format(b))
+        except ClanBattleError as e:
+            _logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
+            return str(e)
         _logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
         return msg
 
@@ -361,3 +389,19 @@ def execute(self, match_num, ctx):
             return f'{call}已经下班了，塔诺西！'
         else:
             return f'{call}已经出完{fin}刀，手上{f"有{con}刀" if con else "没有"}补偿刀，sl{"已用" if sl else "还在"}'
+
+    elif match_num == 20:  # 重置进度
+        if cmd != "重置进度":
+            return
+        try:
+            if (ctx['sender']['role'] not in ['owner', 'admin']) and (ctx['user_id'] not in self.setting['super-admin']):
+                return '只有管理员或主人可使用重置进度功能'
+            available_empty_battle_id = self._get_available_empty_battle_id(group_id)
+            group = Clan_group.get_or_none(group_id=group_id)
+            current_data_slot_record = group.battle_id
+            self.switch_data_slot(group_id, available_empty_battle_id)
+        except ClanBattleError as e:
+            _logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
+            return str(e)
+        _logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
+        return "进度已重置\n当前档案编号已从 {} 切换为 {}".format(current_data_slot_record, available_empty_battle_id)
