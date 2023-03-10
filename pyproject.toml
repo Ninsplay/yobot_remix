@@ -6,29 +6,27 @@ authors = ["Iona <724207289@qq.com>"]
 readme = "README.md"
 packages = [{ include = "yobot_remix" }]
 
+[[tool.poetry.source]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple"
+default = true
+
 [tool.poetry.dependencies]
 python = "^3.9"
 
 aiocqhttp = ">=0.6.8"
 aiohttp = ">=3.6.1"
 apscheduler = ">=3.6,<4.0"
-arrow = ">=0.14,<1.0"
-beautifulsoup4 = ">=4.8,<5.0"
 expiringdict = ">=1.2.0"
-feedparser = ">=6.0,<7.0"
 jinja2 = ">=2.11.3,<2.12.0"
-markupsafe = ">=2.0.1,<2.1.0"
-opencc-python-reimplemented = ">=0.1.5,<0.2.0"
+nonebot = "1.9.1"
+opencc = "1.1.1"
 peewee = ">=3.13,<4.0"
 pillow = "^9.4.0"
 quart = ">=0.6.15"
 requests = ">=2.22,<3.0"
+tzlocal = "2.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[[tool.poetry.source]]
-name = 'aliyun.mirrors'
-url = "http://mirrors.aliyun.com/pypi/simple/"
-
