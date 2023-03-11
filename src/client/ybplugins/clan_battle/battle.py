@@ -4,6 +4,10 @@ from aiocqhttp.api import Api
 
 from .components.kernel import init, execute, jobs, match
 from .components.realize import *
+from .components.realize import (_level_by_cycle, _get_nickname_by_qqid,
+                                 _get_group_previous_challenge, _update_group_list_async,
+                                 _fetch_member_list_async, _update_all_group_members_async,
+                                 _update_user_nickname_async, _boss_data_dict, _get_available_empty_battle_id)
 from .components.score import score_table
 from .components.web_operation import register_routes
 
@@ -18,6 +22,7 @@ class ClanBattle:
     execute = execute  # 执行
     jobs = jobs  # 验证
     match = match  # 匹配
+
     #### 核心
 
     # 构造函数/初始化
