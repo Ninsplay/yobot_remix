@@ -10,6 +10,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from .define import Commands, Server
 from ..exception import ClanBattleError
+from ..util import atqq
 from ...ybdata import Clan_group, User
 
 _logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ def init(self,
     _logger.addHandler(consolehandler)
     _logger.setLevel(logging.INFO)
 
-    for group in Clan_group.select().where(Clan_group.deleted is False):
+    for group in Clan_group.select().where(Clan_group.deleted == False):
         self._boss_status[group.group_id] = asyncio.get_event_loop().create_future()
 
     # super-admin initialize

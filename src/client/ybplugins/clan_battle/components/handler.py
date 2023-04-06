@@ -54,9 +54,12 @@ class SubscribeHandler:
         return user_id in self._data[boss_id]
 
     def unsubscribe(self, user_id: int, boss_id: int) -> None:
-        self._data[boss_id].pop(user_id)
-        if not self._data[boss_id]:  # 删除没有预约的Boss
-            self._data.pop(boss_id)
+        try:
+            self._data[boss_id].pop(user_id)
+            if not self._data[boss_id]:  # 删除没有预约的Boss
+                self._data.pop(boss_id)
+        except KeyError:
+            pass
 
     def unsubscribe_all(self, boss_id: int) -> None:
         """

@@ -697,7 +697,8 @@ def challenge(self,
         raise GroupError('您没有补偿刀')
 
     # 确认报刀无误后如果预约过当前boss则删除预约记录
-    subscribe_handler.unsubscribe(qqid, boss_num)
+    subscribe_handler = SubscribeHandler(group=group)
+    subscribe_handler.unsubscribe(qqid, int(boss_num))
 
     if defeat:
         boss_health_remain = 0
@@ -1053,7 +1054,7 @@ def apply_for_challenge(self, is_continue, group_id: Groupid, qqid: QQid, boss_n
         raise GroupError('只能挑战2个周目内且不跨阶段的同个boss哦')
 
     d, _ = pcr_datetime(area=group.game_server)
-    challenges:List[Clan_challenge] = Clan_challenge.select().where(
+    challenges: List[Clan_challenge] = Clan_challenge.select().where(
         Clan_challenge.gid == group_id,
         Clan_challenge.qqid == challenger,
         Clan_challenge.bid == group.battle_id,

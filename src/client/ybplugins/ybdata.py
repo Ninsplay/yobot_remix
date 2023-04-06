@@ -4,8 +4,7 @@ from peewee import *
 from playhouse.migrate import SqliteMigrator
 
 from .web_util import rand_string
-
-db_mode = True  # True为本地（原），Flase为为改为mysql（需要在第15行配置使用）
+from .dbconfig import db_mode, mysql_config
 
 _version = 2  # 目前版本
 MAX_TRY_TIMES = 5
@@ -14,8 +13,8 @@ if db_mode:
     _db = SqliteDatabase(None)
 else:
     _db = MySQLDatabase(
-        "", host="", user="", passwd="", port=3306
-        # 第一个填写你的数据库名
+        mysql_config['db_name'], host=mysql_config['host'], user=mysql_config['user'], passwd=mysql_config['password'], port=mysql_config['port']
+        # 在dbconfig.py配置
     )
 
 

@@ -26,7 +26,7 @@ class ClanBattle:
     #### 核心
 
     # 构造函数/初始化
-    def __init__(self, glo_setting: Dict[str, Any], bot_api: Api, boss_id_name: Dict):
+    def __init__(self, glo_setting: Dict[str, Any], bot_api: Api, boss_id_name: Dict, *args, **kwargs):
         # data initialize
         self._boss_status: Dict[str, asyncio.Future] = {}
         self.init(glo_setting, bot_api, boss_id_name)
