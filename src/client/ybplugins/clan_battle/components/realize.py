@@ -14,7 +14,7 @@ from PIL import Image, ImageFont, ImageDraw
 from .handler import SubscribeHandler
 from .multi_cq_utils import who_am_i
 from ..exception import GroupError, GroupNotExist, InputError, UserError, UserNotInGroup
-from ..typing import Groupid, QQid
+from ..typing import ClanBattleReport, Groupid, Pcr_date, QQid
 from ..util import atqq, pcr_datetime, pcr_timestamp, timed_cached_func
 from ...web_util import async_cached_func
 from ...ybdata import Clan_challenge, Clan_group, Clan_member, User, Clan_group_backups
