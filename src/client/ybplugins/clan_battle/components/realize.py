@@ -919,10 +919,10 @@ def get_subscribe_list(self, group_id: Groupid):
     subscribe_handler = SubscribeHandler(group=group)
     back_info = []
     for boss_num, qqid_list in subscribe_handler.data.items():
-        back_info.append({
+        for qqid, msg in qqid_list.items():back_info.append({
             'boss': boss_num,
-            'qqid': subscribe_handler.get_subscribe_list(boss_num),
-            'message': None,
+            'qqid': qqid,
+            'message': msg,
         })
     return back_info
 
@@ -1053,7 +1053,7 @@ def apply_for_challenge(self, is_continue, group_id: Groupid, qqid: QQid, boss_n
         raise GroupError('只能挑战2个周目内且不跨阶段的同个boss哦')
 
     d, _ = pcr_datetime(area=group.game_server)
-    challenges = Clan_challenge.select().where(
+    challenges:List[Clan_challenge] = Clan_challenge.select().where(
         Clan_challenge.gid == group_id,
         Clan_challenge.qqid == challenger,
         Clan_challenge.bid == group.battle_id,
@@ -1322,7 +1322,7 @@ def challenger_info(self, group_id):
     if group is None:
         raise GroupNotExist
     date, _ = pcr_datetime(area=group.game_server)
-    challenges = Clan_challenge.select().where(
+    challenges:List[Clan_challenge] = Clan_challenge.select().where(
         Clan_challenge.gid == group_id,
         Clan_challenge.bid == group.battle_id,
         Clan_challenge.challenge_pcrdate == date,
@@ -1367,13 +1367,13 @@ def challenge_record(self, group_id):
     group: Clan_group = get_clan_group(self, group_id)
     if group is None: raise GroupNotExist
     date, _ = pcr_datetime(area=group.game_server)
-    members = Clan_member.select().where(Clan_member.group_id == group_id)
+    members:List[Clan_member] = Clan_member.select().where(Clan_member.group_id == group_id)
     total_blade_num = 0  # 总出刀数
     total_continue_blade_num = 0  # 总补偿刀数量
     zero_blade_members = []  # 一刀没出的成员
     blade_list = {}
     for member in members:
-        challenge_records = Clan_challenge.select().where(
+        challenge_records:List[Clan_challenge] = Clan_challenge.select().where(
             Clan_challenge.gid == group_id,
             Clan_challenge.bid == group.battle_id,
             Clan_challenge.challenge_pcrdate == date,
