@@ -183,14 +183,14 @@ def execute(self, match_num, ctx):
         return boss_status
 
     elif match_num == 5:  # 尾刀
-        match = re.match(r'^尾刀 ?([1-5])? *(补偿|补|b|bc)? ?(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
+        match = re.match(r'^([1-5])?尾刀 ?([1-5])? *(补偿|补|b|bc)? ?(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
         if not match:
             return
-        behalf = match.group(3) and int(match.group(3))
-        is_continue = match.group(2) and True or False
-        boss_num = match.group(1)
+        behalf = match.group(4) and int(match.group(4))
+        is_continue = match.group(3) and True or False
+        boss_num = match.group(1) or match.group(2)
 
-        previous_day = bool(match.group(4))
+        previous_day = bool(match.group(5))
         try:
             boss_status = self.challenge(group_id, user_id, True, None, behalf, is_continue,
                                          boss_num=boss_num, previous_day=previous_day)
@@ -215,13 +215,14 @@ def execute(self, match_num, ctx):
         return boss_status
 
     elif match_num == 7:  # 预约
-        match = re.match(r'^预约([1-5]|表) *(?:[:：](.*))?$', cmd)
+        match = re.match(r'^预约([1-5]|表) *(?:[:：](.*))? *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
         if not match:
             return
         msg = match.group(1)
         note = match.group(2) or ''
         behalf = match.group(3) or None
-        if behalf: user_id = int(behalf)
+        if behalf:
+            user_id = int(behalf)
         try:
             back_msg = self.subscribe(group_id, user_id, msg, note)
         except ClanBattleError as e:
@@ -265,11 +266,14 @@ def execute(self, match_num, ctx):
         return msg
 
     elif match_num == 12:  # 申请
-        match = re.match(r'^(?:进|申请出刀)(| )([1-5]) *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
+        match = re.match(r'^(进|补时进|申请出刀)(?:| )([1-5]) *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
         if not match:
             return '申请出刀格式错误\n例：申请出刀1 or 申请出刀1b 代表补偿\n后接@为别人申请出刀)'
         boss_num = match.group(2)
-        is_continue = match.group(3) and True or False
+        if match.group(1) == '补时进':
+            is_continue = True
+        else:
+            is_continue = True if match.group(3) else False
         behalf = match.group(4) and int(match.group(4))
         try:
             boss_info = self.apply_for_challenge(is_continue, group_id, user_id, boss_num, behalf)

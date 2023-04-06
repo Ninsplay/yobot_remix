@@ -567,13 +567,13 @@ def send_remind(self,
     if send_private_msg:
         asyncio.ensure_future(self.send_private_remind(
             member_list=member_list,
-            content=f'{sender_name}提醒您及时完成今日出刀',
+            content=f'{sender_name}提醒你及时完成今日出刀',
         ))
     else:
         message = ' '.join(atqq(qqid) for qqid in member_list)
         asyncio.ensure_future(self.api.send_group_msg(
             self_id=who_am_i(group_id), group_id=group_id,
-            message=message + f'\n=======\n{sender_name}提醒您及时完成今日出刀',
+            message=message + f'\n=======\n{sender_name}提醒你及时完成今日出刀',
         ))
 
 
@@ -626,7 +626,9 @@ def challenge(self,
         behalf = None
 
     membership = Clan_member.get_or_none(group_id=group_id, qqid=qqid)
-    if membership is None: raise UserNotInGroup  # 若已申请出刀且指定报刀boss，优先选择指定报刀boss
+    if membership is None:
+        raise UserNotInGroup
+    # 若已申请出刀且指定报刀boss，优先选择指定报刀boss
     if boss_num and self.check_blade(group_id, qqid):
         self.cancel_blade(group_id, qqid, send_web=False)
     # 若已申请出刀未指定报刀boss，自动选择申请出刀的boss
@@ -685,7 +687,7 @@ def challenge(self,
 
     challenges = list(challenges)
     finished = sum(bool(c.boss_health_remain or c.is_continue) for c in challenges)
-    if finished >= 3:
+    if finished >= 90:  # 给会里多个号的用
         if previous_day:
             raise InputError('昨日上报次数已达到3次')
         raise InputError('今日上报次数已达到3次')
@@ -694,7 +696,7 @@ def challenge(self,
     # 剩余多少刀补偿
     cont_blade = len(challenges) - finished - all_cont_blade
     if is_continue and cont_blade == 0:
-        raise GroupError('您没有补偿刀')
+        raise GroupError('你没有补偿刀')
 
     # 确认报刀无误后如果预约过当前boss则删除预约记录
     subscribe_handler = SubscribeHandler(group=group)
@@ -829,7 +831,7 @@ def undo(self, group_id: Groupid, qqid: QQid):
 
 
 # 预约x/预约表
-def subscribe(self, group_id: Groupid, qqid: QQid, msg, note):  # TODO 修改格式
+def subscribe(self, group_id: Groupid, qqid: QQid, msg, note):  # TODO 修改格式?
     """
     预约某个boss或查看所有已预约的玩家
 
@@ -1062,7 +1064,7 @@ def apply_for_challenge(self, is_continue, group_id: Groupid, qqid: QQid, boss_n
     ).order_by(Clan_challenge.cid)
     challenges = list(challenges)
     finished = sum(bool(c.boss_health_remain or c.is_continue) for c in challenges)
-    if finished >= 3:
+    if finished >= 90:  # 给会里多个号的用
         raise GroupError('你今天已经出了3次整刀了')
     # 收尾且不是补偿
     tail_blade = sum(bool(c.boss_health_remain == 0 and (not c.is_continue)) for c in challenges)
@@ -1071,9 +1073,9 @@ def apply_for_challenge(self, is_continue, group_id: Groupid, qqid: QQid, boss_n
     # 剩余多少刀补偿
     cont_blade = len(challenges) - finished - all_cont_blade
     if is_continue and cont_blade == 0:
-        raise GroupError('您没有补偿刀')
-    if finished + tail_blade - all_cont_blade >= 3 and cont_blade != 0:
-        is_continue = True
+        raise GroupError('你没有补偿刀')
+    # if finished + tail_blade - all_cont_blade >= 3 and cont_blade != 0:  # 注释掉免得一个qq号报多个刀时显示是补偿
+    #     is_continue = True
 
     nik = self._get_nickname_by_qqid(challenger)
     info = [f'{nik}已开始挑战boss']
@@ -1204,14 +1206,14 @@ def save_slot(self, group_id: Groupid, qqid: QQid,
     today, _ = pcr_datetime(group.game_server)
     if clean_flag:
         if membership.last_save_slot != today:
-            raise UserError('您今天还没有SL过')
+            raise UserError('你今天还没有SL过')
         membership.last_save_slot = 0
         membership.save()
         return '已取消SL'
     if only_check:
         return membership.last_save_slot == today
     if membership.last_save_slot == today:
-        raise UserError('您今天已经SL过了')
+        raise UserError('你今天已经SL过了')
     membership.last_save_slot = today
     membership.save()
 
@@ -1253,7 +1255,7 @@ def report_hurt(self, s, hurt, group_id: Groupid, qqid: QQid, clean_type=0):
         ret_msg = '已记录伤害，小心不要手滑哦~'
     elif clean_type == 1:
         if challenging_member_list[boss_num][str_qqid]['damage'] == 0:
-            ret_msg = '您还没有报伤害呢'
+            ret_msg = '你还没有报伤害呢'
         else:
             challenging_member_list[boss_num][str_qqid]['s'] = 0
             challenging_member_list[boss_num][str_qqid]['damage'] = 0
@@ -1299,7 +1301,7 @@ def challenger_info_small(self, group: Clan_group, boss_num, msg: List = None):
         for challenger, info in challenging_list.items():
             temp_msg = f'->{self._get_nickname_by_qqid(int(challenger))}'
             if info['is_continue']:
-                temp_msg += '(补偿)'
+                temp_msg += '(补)'
             if info['behalf']:
                 behalf = self._get_nickname_by_qqid(info['behalf'])
                 temp_msg += f'({behalf}代刀)'
