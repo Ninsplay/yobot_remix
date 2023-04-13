@@ -9,18 +9,20 @@ from aiocqhttp.api import Api
 from apscheduler.triggers.cron import CronTrigger
 
 from .define import Commands, Server
-from ..exception import ClanBattleError
+from .image_engine import download_missing_user_profile, image_engine_init
+from .multi_cq_utils import refresh
+from ..exception import ClanBattleError, InputError, GroupNotExist
 from ..util import atqq
-from ...ybdata import Clan_group, User
+from ...ybdata import Clan_group, Clan_member, User
 
 _logger = logging.getLogger(__name__)
 
 
 # 初始化
 def init(self,
-         glo_setting: Dict[str, Any],
-         bot_api: Api,
-         boss_id_name: Dict[str, Any]):
+		glo_setting: Dict[str, Any],
+		bot_api: Api,
+		boss_id_name: Dict[str, Any]):
 	self.setting = glo_setting
 	self.boss_id_name = boss_id_name
 	self.bossinfo = glo_setting['boss']
@@ -31,6 +33,7 @@ def init(self,
 	# log
 	if not os.path.exists(os.path.join(glo_setting['dirname'], 'log')):
 		os.mkdir(os.path.join(glo_setting['dirname'], 'log'))
+	image_engine_init()
 
 	formater = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
 	filehandler = logging.FileHandler(
@@ -116,6 +119,7 @@ def execute(self, match_num, ctx):
 		config.set('GROUPS', str(ctx['group_id']), str(ctx['self_id']))
 		with open(str(inipath), 'w') as f:
 			config.write(f)
+		refresh()
 		return ('公会创建成功，请登录后台查看，公会战成员请发送“加入公会”，'
 		        '或管理员发送“加入全部成员”'
 		        '如果无法正常使用网页催刀功能，请发送“手动添加群记录”')
@@ -143,17 +147,18 @@ def execute(self, match_num, ctx):
 	elif match_num == 3:  # 状态
 		if cmd in ['状态', '进度']:
 			try:
-				boss_summary = self.boss_status_summary(group_id)
+				boss_summary = f'详情可在面板查看：\n{url}\n'+self.boss_status_summary(group_id)
+				asyncio.ensure_future(download_missing_user_profile())
 			except ClanBattleError as e:
 				return str(e)
 			return boss_summary
 
 	elif match_num == 4:  # 报刀
 		match = re.match(
-			r'^报刀 ?(?:-([1-5]))? ?(\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
+			r'^(?:报刀|刀) ?(?:-([1-5]))? ?(\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
 		if not match:
 			# 尝试使用另外的匹配模式
-			match = re.match(r'^报刀 ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$',
+			match = re.match(r'^(?:报刀|刀) ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$',
 			                 cmd)
 		if not match:
 			return '报刀格式:\n报刀 100w（需先申请出刀以指定几王）\n报刀 -1 100w（-1表示报在1王，-可省略）'
@@ -243,19 +248,33 @@ def execute(self, match_num, ctx):
 		_logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
 		return back_msg
 
-	elif match_num == 11:  # 挂树
-		match = re.match(r'^挂树 *(?:[:：](.*))? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
+	elif match_num == 9:  # 出刀记录
+		match = re.match(r'^出刀(记录|情况|状况|详情) *$', cmd)
 		if not match:
 			return
-		extra_msg = match.group(1)
-		behalf = match.group(2) and int(match.group(2))
+		try:
+			back_msg = self.challenge_record(group_id)
+		except ClanBattleError as e:
+			_logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
+			return str(e)
+		_logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
+		return back_msg
+
+	elif match_num == 11:  # 挂树
+		match = re.match(r'挂树 *([1-5])? *(?:[:：](.*))? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
+		if not match:
+			return
+		extra_msg = match.group(2)
+		boss_num = match.group(1) and int(match.group(1))
+		boss_num = boss_num or False
+		behalf = match.group(3) and int(match.group(3))
 		behalf = behalf or user_id
 		if isinstance(extra_msg, str):
 			extra_msg = extra_msg.strip()
 			if not extra_msg:
 				extra_msg = None
 		try:
-			msg = self.put_on_the_tree(group_id, behalf, extra_msg)
+			msg = self.put_on_the_tree(group_id, behalf, extra_msg, boss_num)
 		# if behalf:
 		# 	sender = self._get_nickname_by_qqid(user_id)
 		# 	self.behelf_remind(behalf, f'您的号被{sender}挂树上了。')
@@ -317,6 +336,19 @@ def execute(self, match_num, ctx):
 		_logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
 		return msg
 
+	elif match_num == 14:  # 取消申请出刀
+		match = re.match(r'^不(?:打|进)了 *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
+		if not match: return
+		behalf = match.group(1) and int(match.group(1))
+		if behalf: user_id = behalf
+		try:
+			msg =  self.cancel_blade(group_id, user_id)
+		except ClanBattleError as e:
+			_logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
+			return str(e)
+		_logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
+		return msg
+
 	elif match_num == 15:  # 面板
 		if len(cmd) != 2:
 			return
@@ -346,7 +378,7 @@ def execute(self, match_num, ctx):
 			return back_msg
 
 	elif match_num == 17:  # 报伤害
-		match = re.match(r'^报伤害(?:剩| |)(?:(\d+[sS秒])?(?:打了| |)(\d+)[wW万])? *(?:\[CQ:at,qq=(\d+)\])? *$',
+		match = re.match(r'^(?:打了|报伤害)(?:剩| |)(?:(\d+[sS秒])?(?:打了| |)(\d+)[wW万])? *(?:\[CQ:at,qq=(\d+)\])? *$',
 		                 cmd)
 		if not match:
 			return '格式出错(O×O)，如“报伤害 2s200w”或“报伤害 3s300w@xxx”'
@@ -362,7 +394,7 @@ def execute(self, match_num, ctx):
 		return self.report_hurt(int(s), hurt, group_id, user_id)
 
 	elif match_num == 18:  # 权限，设置意外无权限用户有权限
-		match = re.match(r'^更改权限 *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
+		match = re.match(r'^权限 *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
 		if match:
 			if match.group(1):
 				if ctx['sender']['role'] == 'member':
@@ -407,9 +439,56 @@ def execute(self, match_num, ctx):
 			available_empty_battle_id = self._get_available_empty_battle_id(group_id)
 			group = Clan_group.get_or_none(group_id=group_id)
 			current_data_slot_record = group.battle_id
+			if current_data_slot_record == available_empty_battle_id:
+				return "当前档案记录为空，无需重置"
 			self.switch_data_slot(group_id, available_empty_battle_id)
 		except ClanBattleError as e:
 			_logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
 			return str(e)
 		_logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
-		return "进度已重置\n当前档案编号已从 {} 切换为 {}".format(current_data_slot_record, available_empty_battle_id)
+		return "进度已重置\n档案编号： {} -> {}".format(current_data_slot_record, available_empty_battle_id)
+
+	elif match_num == 21:  #刷新
+		try:
+			if cmd == "刷新头像":
+				# TODO: 权限校验及频率限制
+				# _logger.info(f"群 {group_id} 更新成员头像")
+				# self._update_user_profile_image(group_id=group_id)
+				# return "已刷新本公会所有成员头像"
+				return
+		except ClanBattleError as e:
+			_logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
+			return str(e)
+
+	elif match_num == 30:
+		if len(cmd) != 2:
+			return
+		match = re.match(r'^查(树|[1-5]) *$', cmd)
+		if not match : return
+		msg = match.group(1)
+		reply = ""
+		flag = True
+		if msg == "树":
+			_dic = self.query_tree(group_id=group_id, user_id=user_id)
+			for key in _dic:
+				if _dic[key] != []:
+					flag = False
+					reply += f"{key}王挂树的成员：\n"
+					for item in _dic[key]:
+						reply += f"{self._get_nickname_by_qqid(int(item[0]))}:{item[1]}\n"
+			if flag:
+				reply = "当前在任意Boss上无人挂树"
+		else:
+			_boss_num = int(msg)
+			group:Clan_group = self.get_clan_group(group_id)
+			if group is None:raise GroupNotExist
+			reply += '\n'.join(self.challenger_info_small(group, str(_boss_num)))
+			try:
+				_dic = self.query_tree(group_id=group_id, user_id=user_id, boss_id=_boss_num)
+			except KeyError:
+				reply += f"\n没有成员在{_boss_num}王挂树"
+				return reply
+			reply += f"\n{_boss_num}王挂树的成员：\n"
+			for item in _dic[str(_boss_num)]:
+				reply += f"{self._get_nickname_by_qqid(int(item[0]))}:{item[1]}\n"
+		return reply

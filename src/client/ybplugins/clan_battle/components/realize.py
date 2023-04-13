@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import math
 import json
 import logging
 import os
@@ -12,6 +13,7 @@ import peewee
 from PIL import Image, ImageFont, ImageDraw
 
 from .handler import SubscribeHandler
+from .image_engine import download_user_profile_image, generate_combind_boss_state_image, BossStatusImageCore, get_process_image, GroupStateBlock
 from .multi_cq_utils import who_am_i
 from ..exception import GroupError, GroupNotExist, InputError, UserError, UserNotInGroup
 from ..typing import ClanBattleReport, Groupid, Pcr_date, QQid
@@ -192,6 +194,22 @@ async def _update_user_nickname_async(self, qqid, group_id=None):
 	except Exception as e:
 		_logger.exception(e)
 
+
+def _update_user_profile_image(self, user_id: Optional[Union[int,List[int]]] = None, group_id: Optional[int] = None) -> None:
+	update_qqid_list = set()
+	if not (group_id and user_id):
+		for this_user in User.select(User.qqid):
+			update_qqid_list.add(this_user.qqid)
+	if user_id:
+		if isinstance(user_id,int):
+			update_qqid_list.add(user_id)
+		elif isinstance(user_id,List):
+			for i in user_id:
+				update_qqid_list.add(i)
+	if group_id:
+		for this_user in Clan_member.select().where(Clan_member.group_id == group_id):
+			update_qqid_list.add(this_user.qqid)
+	asyncio.ensure_future(download_user_profile_image(list(update_qqid_list)))
 
 # 获取boss当前数据
 def _boss_data_dict(self, group: Clan_group) -> Dict[str, Any]:
@@ -931,7 +949,7 @@ def get_subscribe_list(self, group_id: Groupid):
 
 
 # 挂树
-def put_on_the_tree(self, group_id: Groupid, qqid: QQid, message=None):
+def put_on_the_tree(self, group_id: Groupid, qqid: QQid, message=None, boss_num=False):
 	"""
 	放在树上
 
@@ -939,6 +957,7 @@ def put_on_the_tree(self, group_id: Groupid, qqid: QQid, message=None):
 		group_id: QQ群号
 		qqid: 挂树的QQ号
 		message: 留言
+		boss_num: [可选]指定挂树的boss，若不指定则继续查找
 	"""
 	group: Clan_group = get_clan_group(self, group_id)
 	if group is None:
@@ -946,16 +965,37 @@ def put_on_the_tree(self, group_id: Groupid, qqid: QQid, message=None):
 	user = User.get_or_none(qqid=qqid)
 	if user is None:
 		raise GroupError('请先加入公会')
+
+	if boss_num == False:
+		if not self.check_blade(group_id, qqid):
+			raise GroupError('你既没申请出刀，也没说挂哪个，要挂哪啊')
+		else:
+			boss_num = self.get_in_boss_num(group_id, qqid)
+
+	boss_num = str(boss_num)
 	if not self.check_blade(group_id, qqid):
-		raise GroupError('你都没申请出刀，要挂哪棵树上啊')
+		try:
+			self.apply_for_challenge(False, group_id, qqid, boss_num, qqid, False)
+		except GroupError as e1:
+			if '完整' in str(e1):
+				try:
+					self.apply_for_challenge(True, group_id, qqid, boss_num, qqid, False)
+				except GroupError as e2:
+					if '补偿' in str(e2):
+						raise GroupError('你今天都下班了，要挂哪棵树上啊')
+					else:
+						raise GroupError(str(e2))
+			else:
+				raise GroupError(str(e1))
+	else:
+		if str(self.get_in_boss_num(group_id, qqid)) != str(boss_num):
+			raise GroupError('你申请的王和挂树的王不一样，怎么挂树啊')
 
 	challenging_member_list = safe_load_json(group.challenging_member_list, {})
-	boss_num = self.get_in_boss_num(group_id, qqid)
-	if not boss_num:
-		raise GroupError('你都没申请出刀，要挂哪棵树上啊')
-	if challenging_member_list[boss_num][str(qqid)]['tree']:
-		raise GroupError('你已经在树上了')
-
+	for item in challenging_member_list.values():
+		if item.get(str(qqid)) is not None and item.get(str(qqid)).get('tree'):
+			raise GroupError('你已经在树上了')
+	
 	challenging_member_list[boss_num][str(qqid)]['tree'] = True
 	challenging_member_list[boss_num][str(qqid)]['msg'] = message
 	group.challenging_member_list = json.dumps(challenging_member_list)
@@ -965,7 +1005,39 @@ def put_on_the_tree(self, group_id: Groupid, qqid: QQid, message=None):
 	return '已挂树'
 
 
-# 下树
+# 查树
+def query_tree(self, group_id: Groupid, user_id: QQid, boss_id=0) -> dict:
+	"""
+	Args:
+		self, group_id, user_id, boss_id(Optional):不填boss_id或给0为查询所有
+	OUTPUT:
+		{"1":[(10000, "消息：马化腾一号挂树")], "2":[($QID, $MSG)], "3":[], "4":[], "5":[]}
+	"""
+	qid = str(user_id)
+	group:Clan_group = get_clan_group(self, group_id)
+	if group is None: raise GroupNotExist
+	user = User.get_or_none(qqid=user_id)
+	if user is None: raise GroupError('请先加入公会')
+	challenging_member_list = safe_load_json(group.challenging_member_list, {})
+	result = {"1": [], "2": [], "3": [], "4": [], "5": []}
+	if boss_id == 0:
+		for i in range(1, 6):
+			try:
+				for qid in challenging_member_list[str(i)]:
+					# reply += f""
+					if challenging_member_list[str(i)][qid]['tree']:
+						result[str(i)].append((qid, challenging_member_list[str(i)][qid]['msg']))
+			except KeyError:
+				continue
+	else:
+		boss_id = str(boss_id)
+		for qid in challenging_member_list[boss_id]:
+			if challenging_member_list[boss_id][qid]['tree']:
+				result[boss_id].append((qid, challenging_member_list[boss_id][qid]['msg']))
+	return result
+
+
+#下树
 def take_it_of_the_tree(self, group_id: Groupid, qqid: QQid, boss_num=0, take_it_type=0, send_web=True):
 	"""
 	把ta从树上取下来
@@ -992,6 +1064,8 @@ def take_it_of_the_tree(self, group_id: Groupid, qqid: QQid, boss_num=0, take_it
 		if not boss_num:
 			raise GroupError('你都没申请出刀，下什么树啊')
 		qqid = str(qqid)
+		if not challenging_member_list[boss_num][qqid]['tree']:
+			raise GroupError('你都没挂树，下啥子树啊 (╯‵□′)╯︵┻━┻')
 		challenging_member_list[boss_num][qqid]['tree'] = False
 		challenging_member_list[boss_num][qqid]['msg'] = None
 		group.challenging_member_list = json.dumps(challenging_member_list)
@@ -1344,28 +1418,82 @@ def challenger_info(self, group_id):
 			if end_blade_qqid[c.qqid] == 0:
 				del end_blade_qqid[c.qqid]
 
-	finished = sum(bool(c.boss_health_remain or c.is_continue) for c in challenges)
-	msg = []
-	temp_msg = f'今天已出{finished}刀，'
-	if len(end_blade_qqid) > 0:
-		temp_msg += '剩余补偿刀有：'
-		for qqid, num in end_blade_qqid.items():
-			if num > 0:
-				temp_msg += f'\n{self._get_nickname_by_qqid(qqid)}--{num}刀'
-	else:
-		temp_msg += '无剩余补偿刀'
-	msg.append(temp_msg)
+	finish_challenge_count = sum(bool(c.boss_health_remain or c.is_continue) for c in challenges)
 
-	msg.append('====================')
-	for boss_num in range(5):
-		self.challenger_info_small(group, str(boss_num + 1), msg)
-		msg.append('====================')
-	back_msg = text_2_pic(self, '\n'.join(msg))
+	half_challenge_list:Dict[str,str] = {}
+	for qqid, num in end_blade_qqid.items() :
+		if num < 0:
+			continue
+		half_challenge_list[str(qqid)] = f'{self._get_nickname_by_qqid(qqid)[:4]}'+ (f' x {num}' if num else '')
 
-	return back_msg
+	challenging_list = safe_load_json(group.challenging_member_list)
+	group_boss_data = self._boss_data_dict(group)
+	image_core_instance_list = []
+	subscribe_handler = SubscribeHandler(group=group)
+	for boss_num in range(1,6):
+		this_boss_data = group_boss_data[boss_num]
+		boss_num_str = str(boss_num)
+		extra_info = {"预约":{}, "挑战":{}}
+		if challenging_list and (boss_num_str in challenging_list):
+			for challenger, info in challenging_list[boss_num_str].items():
+				challenger = str(challenger)
+				challenger_nickname = self._get_nickname_by_qqid(challenger)[:4]
+				challenger_msg = challenger_nickname
+				if info['is_continue']:
+					challenger_msg += '(补)'
+				if info['behalf']:
+					behalf = self._get_nickname_by_qqid(info['behalf'])[:4]
+					challenger_msg += f'({behalf}代)'
+				if info['damage'] > 0:
+					challenger_msg += f'@{info["s"]}s,{info["damage"]}w'
+				if info['tree']:
+					challenger_msg += '(挂树)'
+					if "挂树" not in extra_info:
+						extra_info["挂树"] = {}
+					extra_info["挂树"][challenger] = challenger_nickname
+				extra_info["挑战"][challenger] = challenger_msg
 
+		if boss_num in subscribe_handler.data:
+			subscribe_list = subscribe_handler.data[boss_num]
+			for user_id, note in subscribe_list.items():
+				extra_info["预约"][str(user_id)] = self._get_nickname_by_qqid(user_id)[:4] + (f":{note}" if note else "")
 
-# 出刀记录
+		image_core_instance_list.append(BossStatusImageCore(
+			this_boss_data['cycle'],
+			this_boss_data["health"],
+			this_boss_data["full_health"],
+			this_boss_data["name"],
+			this_boss_data["icon_id"],
+			extra_info
+		))
+	process_image = get_process_image(
+		[
+			GroupStateBlock(
+				title_text="完整刀",
+				data_text=str(finish_challenge_count),
+				title_color=(0, 0, 0),
+				data_color=(255, 0, 0),
+				background_color=(255, 205, 210),
+			),
+			GroupStateBlock(
+				title_text="阶段",
+				data_text=chr(65+self._level_by_cycle(group.boss_cycle, group.game_server)),
+				title_color=(255, 255, 255),
+				data_color=(255, 255, 255),
+				background_color=(3, 169, 244),
+			),
+		],
+		{"补偿": half_challenge_list}
+	)
+	result_image = generate_combind_boss_state_image(image_core_instance_list, process_image)
+	if result_image.mode != "RGB":
+		result_image = result_image.convert("RGB")
+	bio = BytesIO()
+	result_image.save(bio, format='JPEG', quality=95)
+	result_image.close()
+	base64_str = 'base64://' + base64.b64encode(bio.getvalue()).decode()
+	return f"[CQ:image,file={base64_str}]"# 出刀记录
+
 def challenge_record(self, group_id):
 	group: Clan_group = get_clan_group(self, group_id)
 	if group is None: raise GroupNotExist
@@ -1418,11 +1546,11 @@ def challenge_record(self, group_id):
 # 获取报告
 @timed_cached_func(max_len=64, max_age_seconds=10, ignore_self=True)
 def get_report(self,
-               group_id: Groupid,
-               battle_id: Union[str, int, None],
-               qqid: Optional[QQid] = None,
-               pcrdate: Optional[Pcr_date] = None
-               ) -> ClanBattleReport:
+				group_id: Groupid,
+				battle_id: Union[str, int, None],
+				qqid: Optional[QQid] = None,
+				pcrdate: Optional[Pcr_date] = None
+				) -> ClanBattleReport:
 	"""
 	get the records
 
@@ -1479,9 +1607,9 @@ def get_report(self,
 # 从会战记录里获取成员列表
 @timed_cached_func(max_len=64, max_age_seconds=10, ignore_self=True)
 def get_battle_member_list(self,
-                           group_id: Groupid,
-                           battle_id: Union[str, int, None],
-                           ):
+							group_id: Groupid,
+							battle_id: Union[str, int, None],
+							):
 	"""
 	Args:
 		group_id: QQ群号
