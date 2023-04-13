@@ -8,7 +8,7 @@ from .components.realize import (_level_by_cycle, _get_nickname_by_qqid,
 								_get_group_previous_challenge, _update_group_list_async,
 								_fetch_member_list_async, _update_all_group_members_async,
 								_update_user_nickname_async, _boss_data_dict, _get_available_empty_battle_id,
-				_update_user_profile_image)
+								_update_user_profile_image)
 from .components.score import score_table
 from .components.web_operation import register_routes
 
@@ -71,21 +71,6 @@ class ClanBattle:
 	send_private_remind = send_private_remind				##向个人私聊发送出刀提醒
 	behelf_remind = behelf_remind							##代刀提醒
 	send_remind = send_remind								##发送出刀提醒
-
-	create_group = create_group  # 创建公会
-	bind_group = bind_group  # 加入公会
-	drop_member = drop_member  # 删除成员
-	boss_status_summary = boss_status_summary  # 当前的boss状态
-	challenge = challenge  # 报刀
-	undo = undo  # 撤销上一刀的伤害/删除上一刀的记录
-	modify = modify  # 修改boss状态
-	change_game_server = change_game_server  # 修改服务器
-	get_data_slot_record_count = get_data_slot_record_count  # 获取当期会战数据记录档案的编号
-	clear_data_slot = clear_data_slot  # 清空会战数据记录档案
-	switch_data_slot = switch_data_slot  # 切换会战数据记录档案
-	send_private_remind = send_private_remind  # 向个人私聊发送出刀提醒
-	behelf_remind = behelf_remind  # 代刀提醒
-	send_remind = send_remind  # 发送出刀提醒
 
 	apply_for_challenge = apply_for_challenge  # 申请出刀
 	cancel_blade = cancel_blade  # 取消申请出刀

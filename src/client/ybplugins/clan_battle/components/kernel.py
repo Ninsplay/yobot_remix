@@ -121,8 +121,8 @@ def execute(self, match_num, ctx):
 			config.write(f)
 		refresh()
 		return ('公会创建成功，请登录后台查看，公会战成员请发送“加入公会”，'
-		        '或管理员发送“加入全部成员”'
-		        '如果无法正常使用网页催刀功能，请发送“手动添加群记录”')
+				'或管理员发送“加入全部成员”'
+				'如果无法正常使用网页催刀功能，请发送“手动添加群记录”')
 
 	elif match_num == 2:  # 加入
 		if cmd == '加入全部成员':
@@ -158,8 +158,7 @@ def execute(self, match_num, ctx):
 			r'^(?:报刀|刀) ?(?:-([1-5]))? ?(\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
 		if not match:
 			# 尝试使用另外的匹配模式
-			match = re.match(r'^(?:报刀|刀) ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$',
-			                 cmd)
+			match = re.match(r'^(?:报刀|刀) ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
 		if not match:
 			return '报刀格式:\n报刀 100w（需先申请出刀以指定几王）\n报刀 -1 100w（-1表示报在1王，-可省略）'
 		unit = {
@@ -177,7 +176,7 @@ def execute(self, match_num, ctx):
 		previous_day = bool(match.group(6))
 		try:
 			boss_status = self.challenge(group_id, user_id, False, damage, behalf, is_continue,
-			                             boss_num=boss_num, previous_day=previous_day)
+										boss_num=boss_num, previous_day=previous_day)
 		# if behalf:
 		# 	sender = self._get_nickname_by_qqid(user_id)
 		# 	self.behelf_remind(behalf, f'{sender}使用您的账号打出{damage*unit}伤害')
@@ -198,7 +197,7 @@ def execute(self, match_num, ctx):
 		previous_day = bool(match.group(5))
 		try:
 			boss_status = self.challenge(group_id, user_id, True, None, behalf, is_continue,
-			                             boss_num=boss_num, previous_day=previous_day)
+										boss_num=boss_num, previous_day=previous_day)
 		# if behalf:
 		# 	sender = self._get_nickname_by_qqid(user_id)
 		# 	self.behelf_remind(behalf, f'{sender}使用您的账号收了个尾刀')
@@ -378,10 +377,9 @@ def execute(self, match_num, ctx):
 			return back_msg
 
 	elif match_num == 17:  # 报伤害
-		match = re.match(r'^(?:打了|报伤害)(?:剩| |)(?:(\d+[sS秒])?(?:打了| |)(\d+)[wW万])? *(?:\[CQ:at,qq=(\d+)\])? *$',
-		                 cmd)
+		match = re.match(r'^(?:打了|报伤害/报伤)(?:剩| |)(?:(\d+[sS秒])?(?:打了| |)(\d+)[wW万])? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
 		if not match:
-			return '格式出错(O×O)，如“报伤害 2s200w”或“报伤害 3s300w@xxx”'
+			return '格式出错(O×O)，如“报伤(害) 2s200w”或“打了 3s300w”，不指定秒数默认1s'
 		s = match.group(1) or 1
 		if s != 1:
 			s = re.sub(r'([a-z]|[A-Z]|秒)', '', s)
