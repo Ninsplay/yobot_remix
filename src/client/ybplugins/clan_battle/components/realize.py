@@ -1402,7 +1402,7 @@ def challenger_info(self, group_id):
 	if group is None:
 		raise GroupNotExist
 	date, _ = pcr_datetime(area=group.game_server)
-	challenges:List[Clan_challenge] = Clan_challenge.select().where(
+	challenges: List[Clan_challenge] = Clan_challenge.select().where(
 		Clan_challenge.gid == group_id,
 		Clan_challenge.bid == group.battle_id,
 		Clan_challenge.challenge_pcrdate == date,
@@ -1431,9 +1431,8 @@ def challenger_info(self, group_id):
 
 	challenging_list = safe_load_json(group.challenging_member_list)
 	group_boss_data = self._boss_data_dict(group)
-	boss_state_image_list:List[Union[Image.Image, BossStatusImageCore]] = []
+	boss_state_image_list: List[Union[Image.Image, BossStatusImageCore]] = []
 	subscribe_handler = SubscribeHandler(group=group)
-
 	for boss_num in range(1, 6):
 		this_boss_data = group_boss_data[boss_num]
 		boss_num_str = str(boss_num)
@@ -1471,8 +1470,10 @@ def challenger_info(self, group_id):
 			this_boss_data['full_health'],
 			boss_num_str + '-' + this_boss_data['name'],
 			this_boss_data['icon_id'],
-			extra_info
+			extra_info,
+			this_boss_data['is_next']
 		))
+	level_cycle = self._level_by_cycle(group.boss_cycle, group.game_server)
 	process_image = get_process_image(
 		[
 			GroupStateBlock(
@@ -1484,10 +1485,10 @@ def challenger_info(self, group_id):
 			),
 			GroupStateBlock(
 				title_text='阶段',
-				data_text=chr(65+self._level_by_cycle(group.boss_cycle, group.game_server)),
+				data_text=chr(65+level_cycle),
 				title_color=(255, 255, 255),
 				data_color=(255, 255, 255),
-				background_color=(3, 169, 244),
+				background_color=[(132, 1, 244), (115, 166, 231), (206, 105, 165), (206, 80, 66), (181, 105, 206)][level_cycle],
 			),
 		],
 		{'补偿': half_challenge_list}
