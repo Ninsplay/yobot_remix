@@ -1391,7 +1391,7 @@ def challenger_info_small(self, group: Clan_group, boss_num, msg: List = None):
 			if info['damage'] > 0:
 				temp_msg += f', 剩{info["s"]}秒，打了{info["damage"]}万伤害'
 			if info['tree']:
-				temp_msg += f'--已挂树：{info["msg"]}'
+				temp_msg += f'--已挂树{("：" + info["msg"]) if info["msg"] is not None else ""}'
 			msg.append(temp_msg)
 
 	return msg
