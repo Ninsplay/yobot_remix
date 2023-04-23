@@ -69,6 +69,7 @@ def get_used_info(self, qqid, group_id):  # 获取具体某个人的出刀情况
 		Clan_challenge.challenge_pcrdate == d,
 		).order_by(Clan_challenge.cid)
 	challenges = list(challenges)
+	used = sum(bool(not c.is_continue) for c in challenges)
 	finished = sum(bool(c.boss_health_remain or c.is_continue) for c in challenges)
 	is_continue = 0
 	for c in challenges:
@@ -80,7 +81,7 @@ def get_used_info(self, qqid, group_id):  # 获取具体某个人的出刀情况
 		group_id=group_id, qqid=qqid)
 	today, _ = pcr_datetime(group.game_server)
 	only_check = (membership.last_save_slot == today)
-	return finished, is_continue, only_check
+	return used, finished, is_continue, only_check
 
 
 # 获取公会数据实例，确保每次获取的都是同一个
@@ -785,13 +786,13 @@ def challenge(self,
 
 	nik = self._get_nickname_by_qqid(qqid)
 	behalf_nik = behalf and f'（{self._get_nickname_by_qqid(behalf)}代）' or ''
-	used = sum(bool(not c.is_continue) for c in challenges)
+	used, fin, con = self.get_used_info
 	if defeat:
 		msg = '{}{}对{}号boss造成了{:,}点伤害，击败了boss\n（今日已出{}刀，出完{}刀，剩余尾刀{}刀）\n'.format(
-			nik, behalf_nik, boss_num, challenge_damage, used, finished, cont_blade)
+			nik, behalf_nik, boss_num, challenge_damage, used, fin, con)
 	else:
 		msg = '{}{}对{}号boss造成了{:,}点伤害\n（今日已出{}刀，出完{}刀，剩余尾刀{}刀）\n'.format(
-			nik, behalf_nik, boss_num, challenge_damage, used, finished, cont_blade)
+			nik, behalf_nik, boss_num, challenge_damage, used, fin, con)
 
 	msg += '\n'.join(self.challenger_info_small(group, boss_num))
 

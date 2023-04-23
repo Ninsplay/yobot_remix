@@ -422,11 +422,11 @@ def execute(self, match_num, ctx):
 		if user_id is None:
 			user_id = ctx['user_id']
 			call = '你'
-		fin, con, sl = self.get_used_info(user_id, group_id)
+		used, fin, con, sl = self.get_used_info(user_id, group_id)
 		if fin == 3 and not con:
 			return f'{call}已经下班了，塔诺西！'
 		else:
-			return f'{call}已经出完{fin}刀，手上{f"有{con}刀" if con else "没有"}补偿刀，sl{"已用" if sl else "还在"}'
+			return f'{call}已经出了{used}刀，出完{fin}刀，手上{f"有{con}刀" if con else "没有"}补偿刀，sl{"已用" if sl else "还在"}'
 
 	elif match_num == 20:  # 重置进度
 		if cmd != "重置进度":
