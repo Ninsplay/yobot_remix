@@ -719,10 +719,6 @@ def challenge(self,
 	if is_continue and cont_blade == 0:
 		raise GroupError('你没有补偿刀')
 
-	# 确认报刀无误后如果预约过当前boss则删除预约记录
-	subscribe_handler = SubscribeHandler(group=group)
-	subscribe_handler.unsubscribe(qqid, int(boss_num))
-
 	if defeat:
 		boss_health_remain = 0
 		challenge_damage = real_cycle_boss_health[boss_num]
@@ -779,6 +775,12 @@ def challenge(self,
 			self.cancel_blade(group_id, qqid, send_web=False)
 		except:
 			pass
+
+	# 确认报刀无误后如果预约过当前boss则删除预约记录
+	subscribe_handler = SubscribeHandler(group=group)
+	if subscribe_handler.is_subscribed(qqid, boss_num):
+		subscribe_handler.unsubscribe(qqid, boss_num)
+		subscribe_handler.save()
 
 	nik = self._get_nickname_by_qqid(qqid)
 	behalf_nik = behalf and f'（{self._get_nickname_by_qqid(behalf)}代）' or ''
