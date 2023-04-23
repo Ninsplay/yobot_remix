@@ -786,7 +786,7 @@ def challenge(self,
 
 	nik = self._get_nickname_by_qqid(qqid)
 	behalf_nik = behalf and f'（{self._get_nickname_by_qqid(behalf)}代）' or ''
-	used, fin, con = self.get_used_info
+	used, fin, con, sl = self.get_used_info(qqid, group_id)
 	if defeat:
 		msg = '{}{}对{}号boss造成了{:,}点伤害，击败了boss\n（今日已出{}刀，出完{}刀，剩余尾刀{}刀）\n'.format(
 			nik, behalf_nik, boss_num, challenge_damage, used, fin, con)
