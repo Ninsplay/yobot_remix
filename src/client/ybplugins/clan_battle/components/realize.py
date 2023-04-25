@@ -1684,7 +1684,7 @@ def get_member_list(self, group_id: Groupid) -> List[Dict[str, Any]]:
 		attr='clan_member',
 	).where(
 		Clan_member.group_id == group_id,
-		User.deleted is False,
+		User.deleted == False,
 	):
 		member_list.append({
 			'qqid': user.qqid,

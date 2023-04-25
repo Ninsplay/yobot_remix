@@ -7,3 +7,4 @@ src/client/venv
 src/client/dist
 src/client/build
 /.idea
+dbconfig.py
