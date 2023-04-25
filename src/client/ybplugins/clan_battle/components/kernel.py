@@ -98,7 +98,7 @@ def execute(self, match_num, ctx):
 	user_id = ctx['user_id']
 	url = urljoin(
 		self.setting['public_address'],
-		'{}clan/{}/'.format(self.setting['public_basepath'], group_id)
+		'{}clan/{}/progress'.format(self.setting['public_basepath'], group_id)
 	)
 
 	if match_num == 1:  # 创建
@@ -353,7 +353,7 @@ def execute(self, match_num, ctx):
 	elif match_num == 15:  # 面板
 		if len(cmd) != 2:
 			return
-		return f'公会战面板：\n{url}\n建议添加到浏览器收藏夹或桌面快捷方式'
+		return f'公会战面板：\n{url}\n查看出刀表之外的内容需登录\n登录请加bot好友后私聊“登录”'
 
 	elif match_num == 16:  # SL
 		match = re.match(r'^(?:SL|sl) *([?？])? *(?:\[CQ:at,qq=(\d+)\])? *([\?？])? *$', cmd)
