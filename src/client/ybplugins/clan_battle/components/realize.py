@@ -1,6 +1,8 @@
 import asyncio
 import base64
 import math
+import os
+import sys
 import json
 import logging
 import os
@@ -25,7 +27,7 @@ from ...web_util import async_cached_func
 from ...ybdata import Clan_challenge, Clan_group, Clan_member, User, Clan_group_backups
 
 _logger = logging.getLogger(__name__)
-FILE_PATH = os.path.dirname(__file__)
+FILE_PATH = Path(sys._MEIPASS).resolve() if "_MEIPASS" in dir(sys) else Path(__file__).resolve().parent
 
 
 def safe_load_json(text, back=None):
@@ -1388,7 +1390,7 @@ def challenger_info_small(self, group: Clan_group, boss_num, msg: List = None):
 				behalf = self._get_nickname_by_qqid(info['behalf'])
 				temp_msg += f'({behalf}代刀)'
 			temp_msg += f'--{"无" if info["sl"] else "有"}sl'
-			if info['damage'] > 0:
+			if (0 if info['damage'] is None else info['damage']) > 0:
 				temp_msg += f', 剩{info["s"]}秒，打了{info["damage"]}万伤害'
 			if info['tree']:
 				temp_msg += f'--已挂树{("：" + info["msg"]) if info["msg"] is not None else ""}'
@@ -1455,7 +1457,7 @@ def challenger_info(self, group_id):
 				if info['behalf']:
 					behalf = self._get_nickname_by_qqid(info['behalf'])[:4]
 					challenger_msg += f'({behalf}代)'
-				if info['damage'] > 0:
+				if (0 if info['damage'] is None else info['damage']) > 0:
 					challenger_msg += f'@{info["s"]}s,{info["damage"]}w'
 				if info['tree']:
 					additional_msg = '(挂树)' + f':{info["msg"]}' if info['msg'] else ''
