@@ -266,16 +266,16 @@ def execute(self, match_num, ctx):
 		if not match:
 			return
 		extra_msg = match.group(2)
-		boss_num = match.group(1) and int(match.group(1))
-		boss_num = boss_num or False
+		boss_num = match.group(1) and int(match.group(1)) or False
 		behalf = match.group(3) and int(match.group(3))
-		behalf = behalf or user_id
+		if not behalf: behalf = None
+		# behalf = behalf or user_id
 		if isinstance(extra_msg, str):
 			extra_msg = extra_msg.strip()
 			if not extra_msg:
 				extra_msg = None
 		try:
-			msg = self.put_on_the_tree(group_id, behalf, extra_msg, boss_num)
+			msg = self.put_on_the_tree(group_id, user_id, extra_msg, boss_num, behalfed=behalf)
 		# if behalf:
 		# 	sender = self._get_nickname_by_qqid(user_id)
 		# 	self.behelf_remind(behalf, f'您的号被{sender}挂树上了。')
@@ -460,7 +460,7 @@ def execute(self, match_num, ctx):
 			_logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
 			return str(e)
 
-	elif match_num == 30:
+	elif match_num == 30:  #查树
 		if len(cmd) != 2:
 			return
 		match = re.match(r'^查(树|[1-5]) *$', cmd)
