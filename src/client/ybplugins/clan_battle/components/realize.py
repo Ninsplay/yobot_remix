@@ -86,6 +86,11 @@ def get_used_info(self, qqid, group_id):  # 获取具体某个人的出刀情况
 	return used, finished, is_continue, only_check
 
 
+def future_operation(self, group, msg):
+	self._boss_status[group.group_id].set_result((self._boss_data_dict(group), group.boss_cycle, msg))
+	del self._boss_status[group.group_id]
+	self._boss_status[group.group_id] = asyncio.get_event_loop().create_future()
+
 # 获取公会数据实例，确保每次获取的都是同一个
 def get_clan_group(self, group_id):
 	if group_id in self.group_data_list:
@@ -379,8 +384,7 @@ def modify(self, group_id: Groupid, cycle=None, bossData=None):
 	group.save()
 
 	msg = 'boss状态已修改'
-	self._boss_status[group_id].set_result((self._boss_data_dict(group), group.boss_cycle, msg))
-	self._boss_status[group_id] = asyncio.get_event_loop().create_future()
+	future_operation(self, group, msg)
 	return msg
 
 
@@ -802,9 +806,7 @@ def challenge(self,
 
 	msg += '\n'.join(self.challenger_info_small(group, boss_num))
 
-	self._boss_status[group_id].set_result((self._boss_data_dict(group), group.boss_cycle, msg))
-	self._boss_status[group_id] = asyncio.get_event_loop().create_future()
-
+	future_operation(self, group, msg)
 	return msg
 
 
@@ -857,8 +859,7 @@ def undo(self, group_id: Groupid, qqid: QQid):
 
 	nik = self._get_nickname_by_qqid(last_challenge.qqid)
 	msg = f'{nik}的出刀记录已被撤销'
-	self._boss_status[group_id].set_result((self._boss_data_dict(group), group.boss_cycle, msg))
-	self._boss_status[group_id] = asyncio.get_event_loop().create_future()
+	future_operation(self, group, msg)
 	return msg
 
 
@@ -1041,10 +1042,9 @@ def put_on_the_tree(self, group_id: Groupid, qqid: QQid, message=None, boss_num=
 		challenging_member_list[boss_num][str(challenger)]['msg'] = f'[「{behalf_nickname}」代挂]' + str(message)
 	group.challenging_member_list = json.dumps(challenging_member_list)
 	group.save()
-	self._boss_status[group_id].set_result((self._boss_data_dict(group), group.boss_cycle, '已挂树'))
-	self._boss_status[group_id] = asyncio.get_event_loop().create_future()
-	return f'{challenger_nickname}已挂树'
-
+	msg = f'{challenger_nickname}已挂树'
+	future_operation(self, group, msg)
+	return msg
 
 # 查树
 def query_tree(self, group_id: Groupid, user_id: QQid, boss_id=0) -> dict:
@@ -1145,11 +1145,9 @@ def take_it_of_the_tree(self, group_id: Groupid, qqid: QQid, boss_num=0, take_it
 				self_id=who_am_i(group_id), group_id=group_id,
 				message='可以下树了~\n' + '\n'.join(notice),
 			))
-	if send_web:
-		self._boss_status[group_id].set_result((self._boss_data_dict(group), group.boss_cycle, '下树了~'))
-		self._boss_status[group_id] = asyncio.get_event_loop().create_future()
-	return '下树了~'
-
+	msg = '已下树'
+	if send_web: future_operation(self, group, msg)
+	return msg
 
 # 检查能否继续挑战下个boss
 def check_next_boss(self, group_id: Groupid, boss_num):
@@ -1235,10 +1233,8 @@ def apply_for_challenge(self, is_continue, group_id: Groupid, qqid: QQid, boss_n
 
 	self.challenger_info_small(group, boss_num, info)
 	info = '\n'.join(info)
-	if send_web:
-		self._boss_status[group_id].set_result(
-			(self._boss_data_dict(group), group.boss_cycle, f'申请挑战{boss_num}王成功'))
-		self._boss_status[group_id] = asyncio.get_event_loop().create_future()
+	if send_web: future_operation(
+			self, group, f'{nik}申请挑战{boss_num}王成功')
 	return info
 
 
@@ -1254,12 +1250,12 @@ def cancel_blade(self, group_id: Groupid, qqid: QQid, boss_num=0, cancel_type=1,
 	group: Clan_group = get_clan_group(self, group_id)
 	if group is None:
 		raise GroupNotExist
-	ret = 0
+	msg = '？'
 	if group.challenging_member_list is None:
 		raise GroupError('目前没有人正在挑战这个boss')
 	if cancel_type == 0:
 		group.challenging_member_list = None
-		ret = '已取消所有'
+		msg = '已取消所有'
 	elif cancel_type == 1:
 		_boss_num = self.get_in_boss_num(group_id, qqid)
 		if not _boss_num:
@@ -1272,7 +1268,7 @@ def cancel_blade(self, group_id: Groupid, qqid: QQid, boss_num=0, cancel_type=1,
 			group.challenging_member_list = None
 		else:
 			group.challenging_member_list = json.dumps(challenging_list)
-		ret = '取消申请出刀成功'
+		msg = '取消申请出刀成功'
 	elif boss_num != 0 and cancel_type == 2:
 		challenging_list = safe_load_json(group.challenging_member_list, {})
 		if boss_num not in challenging_list:
@@ -1280,11 +1276,9 @@ def cancel_blade(self, group_id: Groupid, qqid: QQid, boss_num=0, cancel_type=1,
 		del challenging_list[boss_num]
 		group.challenging_member_list = json.dumps(challenging_list)
 
-	if send_web:
-		self._boss_status[group_id].set_result((self._boss_data_dict(group), group.boss_cycle, ret))
-		self._boss_status[group_id] = asyncio.get_event_loop().create_future()
+	if send_web: future_operation(self, group, msg)
 	group.save()
-	return ret
+	return msg
 
 
 # 检查是否已申请出刀
@@ -1550,6 +1544,10 @@ def challenger_info(self, group_id):
 			this_boss_data['is_next']
 		))
 	level_cycle = self._level_by_cycle(group.boss_cycle, group.game_server)
+	try:
+		_bg_color = [(132, 1, 244), (115, 166, 231), (206, 105, 165), (206, 80, 66), (181, 105, 206)][level_cycle]
+	except IndexError:
+		_bg_color = (181, 105, 206)
 	process_image = get_process_image(
 		[
 			GroupStateBlock(
@@ -1564,7 +1562,7 @@ def challenger_info(self, group_id):
 				data_text=chr(65+level_cycle),
 				title_color=(255, 255, 255),
 				data_color=(255, 255, 255),
-				background_color=[(132, 1, 244), (115, 166, 231), (206, 105, 165), (206, 80, 66), (181, 105, 206)][level_cycle],
+				background_color=_bg_color,
 			),
 		],
 		{'补偿': half_challenge_list}

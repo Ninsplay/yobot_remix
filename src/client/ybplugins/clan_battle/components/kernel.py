@@ -2,18 +2,21 @@ import asyncio
 import logging
 import os
 import re
+import sys
+import configparser
+from pathlib import Path
 from typing import Any, Dict
 from urllib.parse import urljoin
 
 from aiocqhttp.api import Api
 from apscheduler.triggers.cron import CronTrigger
 
+from ...ybdata import Clan_group, Clan_member, User
+from ..exception import ClanBattleError, InputError, GroupNotExist
+from ..util import atqq
 from .define import Commands, Server
 from .image_engine import download_missing_user_profile, image_engine_init
 from .multi_cq_utils import refresh
-from ..exception import ClanBattleError, InputError, GroupNotExist
-from ..util import atqq
-from ...ybdata import Clan_group, Clan_member, User
 
 _logger = logging.getLogger(__name__)
 
@@ -57,9 +60,6 @@ def init(self,
 	User.update({User.authority_group: 1}).where(
 		User.qqid.in_(self.setting['super-admin'])
 	).execute()
-
-	import sys
-	from pathlib import Path
 
 	inipath = Path.cwd().resolve().joinpath("./yobot_data/groups.ini") if "_MEIPASS" in dir(sys) else Path(os.path.dirname(__file__)).parents[2] / 'yobot_data' / 'groups.ini'
 	if not inipath.exists():
@@ -112,9 +112,6 @@ def execute(self, match_num, ctx):
 			_logger.info('群聊 失败 {} {} {}'.format(user_id, group_id, cmd))
 			return str(e)
 		_logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
-		import sys
-		from pathlib import Path
-		import configparser
 		inipath = Path.cwd().resolve().joinpath("./yobot_data/groups.ini") if "_MEIPASS" in dir(sys) else Path(os.path.dirname(__file__)).parents[2] / 'yobot_data' / 'groups.ini'
 		config = configparser.RawConfigParser()
 		config.read(str(inipath))
@@ -149,7 +146,7 @@ def execute(self, match_num, ctx):
 	elif match_num == 3:  # 状态
 		if cmd in ['状态', '进度']:
 			try:
-				boss_summary = f'详情请用“面板”命令在网页查看~\n' + self.boss_status_summary(group_id)
+				boss_summary = self.boss_status_summary(group_id)
 				asyncio.ensure_future(download_missing_user_profile())
 			except ClanBattleError as e:
 				return str(e)
@@ -157,10 +154,10 @@ def execute(self, match_num, ctx):
 
 	elif match_num == 4:  # 报刀
 		match = re.match(
-			r'^(?:报刀|刀) ?(?:-([1-5]))? ?(\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
+			r'^(?:报刀|刀) ?(?:-([1-5]))? ?(\d+)?([Ww万Kk千])? *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
 		if not match:
 			# 尝试使用另外的匹配模式
-			match = re.match(r'^(?:报刀|刀) ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
+			match = re.match(r'^(?:报刀|刀) ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
 		if not match:
 			return '报刀格式:\n报刀 100w（需先申请出刀以指定几王）\n报刀 -1 100w（-1表示报在1王，-可省略）'
 		unit = {
@@ -189,7 +186,7 @@ def execute(self, match_num, ctx):
 		return boss_status
 
 	elif match_num == 5:  # 尾刀
-		match = re.match(r'^([1-5])?尾刀 ?([1-5])? *(补偿|补|b|bc)? ?(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
+		match = re.match(r'^([1-5])?尾刀 ?([1-5])? *(补偿|补|b|bc|B|BC|Bc|bC)? ?(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
 		if not match:
 			return
 		behalf = match.group(4) and int(match.group(4))
@@ -269,11 +266,9 @@ def execute(self, match_num, ctx):
 		boss_num = match.group(1) and int(match.group(1)) or False
 		behalf = match.group(3) and int(match.group(3))
 		if not behalf: behalf = None
-		# behalf = behalf or user_id
 		if isinstance(extra_msg, str):
 			extra_msg = extra_msg.strip()
-			if not extra_msg:
-				extra_msg = None
+			if not extra_msg: extra_msg = None
 		try:
 			msg = self.put_on_the_tree(group_id, user_id, extra_msg, boss_num, behalfed=behalf)
 		# if behalf:
@@ -286,7 +281,7 @@ def execute(self, match_num, ctx):
 		return msg
 
 	elif match_num == 12:  # 申请
-		match = re.match(r'^(进|补时进|申请出刀)(?:| )([1-5]) *(补偿|补|b|bc)? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
+		match = re.match(r'^(进|补时进|申请出刀)(?:| )([1-5]) *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
 		if not match:
 			return '申请出刀格式错误\n例：申请出刀/进/补时进 1 or 申请出刀/进/补时进 1b 代表补偿\n后接@为别人申请出刀)'
 		boss_num = match.group(2)
