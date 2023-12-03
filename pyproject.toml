@@ -14,17 +14,16 @@ default = true
 [tool.poetry.dependencies]
 python = "^3.9"
 
-aiocqhttp = ">=0.6.8"
-aiohttp = ">=3.6.1"
-apscheduler = ">=3.6,<4.0"
-expiringdict = ">=1.2.0"
-jinja2 = ">=2.11.3,<2.12.0"
+aiocqhttp = "1.4.3"
+aiohttp = "3.7.4"
+apscheduler = "3.7.0"
+expiringdict = "1.2.1"
+jinja2 = "3.1.2"
 nonebot = "1.9.1"
-opencc = "1.1.1"
-peewee = ">=3.13,<4.0"
-pillow = "^9.4.0"
-quart = ">=0.6.15"
-requests = ">=2.22,<3.0"
+peewee = "3.14.1"
+pillow = "9.4.0"
+quart = "0.18.3"
+requests = "2.25.1"
 tzlocal = "2.1"
 
 [build-system]
