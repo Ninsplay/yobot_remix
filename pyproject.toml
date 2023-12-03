@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "yobot"
 authors = ["Iona <724207289@qq.com>"]
 readme = "README.md"
-packages = [{ include = "yobot_remix" }]
 
 [[tool.poetry.source]]
 name = "aliyun"
