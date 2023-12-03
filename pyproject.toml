@@ -9,7 +9,7 @@ packages = [{ include = "yobot_remix" }]
 [[tool.poetry.source]]
 name = "aliyun"
 url = "https://mirrors.aliyun.com/pypi/simple"
-default = true
+priority = 'default'
 
 [tool.poetry.dependencies]
 python = "^3.9"
