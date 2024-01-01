@@ -37,7 +37,10 @@ import tzlocal
 from aiocqhttp import CQHttp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-import yobot
+try:
+    from yobot import Yobot
+except ModuleNotFoundError:
+    from .yobot import Yobot
 
 
 def insert_seq(seq, x):
@@ -95,7 +98,7 @@ def main():
     cqbot = CQHttp(access_token=token,
                    enable_http_post=False)
     sche = AsyncIOScheduler()
-    bot = yobot.Yobot(data_path=basedir,
+    bot = Yobot(data_path=basedir,
                       scheduler=sche,
                       quart_app=cqbot.server_app,
                       bot_api=cqbot._api,
@@ -148,9 +151,13 @@ def main():
     )
 
 
-if __name__ == "__main__":
+def run():
     try:
         main()
     except KeyboardInterrupt:
         print("\nCtrl-C")
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    run()

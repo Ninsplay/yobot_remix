@@ -4,11 +4,15 @@ version = "0.1.0"
 description = "yobot"
 authors = ["Iona <724207289@qq.com>"]
 readme = "README.md"
+packages = [{ include = "client", from = "src"}]
 
 [[tool.poetry.source]]
 name = "aliyun"
 url = "https://mirrors.aliyun.com/pypi/simple"
 priority = 'default'
+
+[tool.poetry.scripts]
+yobot = "client.main:run"
 
 [tool.poetry.dependencies]
 python = "^3.8"
