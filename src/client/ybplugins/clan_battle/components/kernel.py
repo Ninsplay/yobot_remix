@@ -130,7 +130,7 @@ def execute(self, match_num, ctx):
 			_logger.info('群聊 成功 {} {} {}'.format(user_id, group_id, cmd))
 			asyncio.ensure_future(self._update_all_group_members_async(group_id))
 			return '本群所有成员已添加记录'
-		match = re.match(r'^加入[公工行]会 *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
+		match = re.match(r'^加入[公工行]会 *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *$', cmd)
 		if match:
 			if match.group(1):
 				if ctx['sender']['role'] == 'member':
@@ -154,10 +154,10 @@ def execute(self, match_num, ctx):
 
 	elif match_num == 4:  # 报刀
 		match = re.match(
-			r'^(?:报刀|刀) ?(?:-([1-5]))? ?(\d+)?([Ww万Kk千])? *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
+			r'^(?:报刀|刀) ?(?:[\-\=]([1-5]))? ?(\d+)?([Ww万Kk千])? *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *(昨[日天])?$', cmd)
 		if not match:
 			# 尝试使用另外的匹配模式
-			match = re.match(r'^(?:报刀|刀) ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
+			match = re.match(r'^(?:报刀|刀) ?([1-5])? (\d+)?([Ww万Kk千])? *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *(昨[日天])?$', cmd)
 		if not match:
 			return '报刀格式:\n报刀 100w（需先申请出刀以指定几王）\n报刀 -1 100w（-1表示报在1王，-可省略）'
 		unit = {
@@ -186,7 +186,7 @@ def execute(self, match_num, ctx):
 		return boss_status
 
 	elif match_num == 5:  # 尾刀
-		match = re.match(r'^([1-5])?尾刀 ?([1-5])? *(补偿|补|b|bc|B|BC|Bc|bC)? ?(?:\[CQ:at,qq=(\d+)\])? *(昨[日天])?$', cmd)
+		match = re.match(r'^([1-5])?尾刀 ?([1-5])? *(补偿|补|b|bc|B|BC|Bc|bC)? ?(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *(昨[日天])?$', cmd)
 		if not match:
 			return
 		behalf = match.group(4) and int(match.group(4))
@@ -218,7 +218,7 @@ def execute(self, match_num, ctx):
 		return boss_status
 
 	elif match_num == 7:  # 预约
-		match = re.match(r'^预约([1-5]|表) *(?:[:：](.*))? *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
+		match = re.match(r'^预约([1-5]|表) *(?:[:：](.*))? *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *$', cmd)
 		if not match:
 			return
 		msg = match.group(1)
@@ -259,7 +259,7 @@ def execute(self, match_num, ctx):
 		return back_msg
 
 	elif match_num == 11:  # 挂树
-		match = re.match(r'挂树 *([1-5])? *(?:[:：](.*))? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
+		match = re.match(r'挂树 *([1-5])? *(?:[:：](.*))? *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *$', cmd)
 		if not match:
 			return
 		extra_msg = match.group(2)
@@ -281,7 +281,7 @@ def execute(self, match_num, ctx):
 		return msg
 
 	elif match_num == 12:  # 申请
-		match = re.match(r'^(进|补时进|申请出刀)(?:| )([1-5]) *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
+		match = re.match(r'^(进|补时进|申请出刀)(?:| )([1-5]) *(补偿|补|b|bc|B|BC|Bc|bC)? *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *$', cmd)
 		if not match:
 			return '申请出刀格式错误\n例：申请出刀/进/补时进 1 or 申请出刀/进/补时进 1b 代表补偿\n后接@为别人申请出刀)'
 		boss_num = match.group(2)
@@ -303,7 +303,7 @@ def execute(self, match_num, ctx):
 
 	elif match_num == 13:  # 取消
 		match = re.match(
-			r'^取消 *([1-5]|挂树|申请出刀|申请|出刀|出刀all|报伤害|sl|SL|预约) *([1-5])? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
+			r'^取消 *([1-5]|挂树|申请出刀|申请|出刀|出刀all|报伤害|sl|SL|预约) *([1-5])? *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *$', cmd)
 		if not match:
 			return
 		b = match.group(1)
@@ -333,7 +333,7 @@ def execute(self, match_num, ctx):
 		return msg
 
 	elif match_num == 14:  # 取消申请出刀
-		match = re.match(r'^不(?:打|进)了 *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
+		match = re.match(r'^不(?:打|进)了 *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *$', cmd)
 		if not match: return
 		behalf = match.group(1) and int(match.group(1))
 		if behalf: user_id = behalf
@@ -351,7 +351,7 @@ def execute(self, match_num, ctx):
 		return f'公会战面板：\n{url}\n查看出刀表之外的内容需登录\n登录请加bot好友后私聊“登录”'
 
 	elif match_num == 16:  # SL
-		match = re.match(r'^(?:SL|sl) *([?？])? *(?:\[CQ:at,qq=(\d+)\])? *([\?？])? *$', cmd)
+		match = re.match(r'^(?:SL|sl) *([?？])? *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *([\?？])? *$', cmd)
 		if not match:
 			return
 		behalf = match.group(2) and int(match.group(2))
@@ -374,7 +374,7 @@ def execute(self, match_num, ctx):
 			return back_msg
 
 	elif match_num == 17:  # 报伤害
-		match = re.match(r'^(?:打了|报伤害/报伤)(?:剩| |)(?:(\d+[sS秒])?(?:打了| |)(\d+)[wW万])? *(?:\[CQ:at,qq=(\d+)])? *$', cmd)
+		match = re.match(r'^(?:打了|报伤害/报伤)(?:剩| |)(?:(\d+[sS秒])?(?:打了| |)(\d+)[wW万])? *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?])? *$', cmd)
 		if not match:
 			return '格式出错(O×O)，如“报伤(害) 2s200w”或“打了 3s300w”，不指定秒数默认1s'
 		s = match.group(1) or 1
@@ -389,7 +389,7 @@ def execute(self, match_num, ctx):
 		return self.report_hurt(int(s), hurt, group_id, user_id)
 
 	elif match_num == 18:  # 权限，设置意外无权限用户有权限
-		match = re.match(r'^权限 *(?:\[CQ:at,qq=(\d+)\])? *$', cmd)
+		match = re.match(r'^权限 *(?:\[CQ:at,qq=(\d+)(?:,name=[^\]]*)?\])? *$', cmd)
 		if match:
 			if match.group(1):
 				if ctx['sender']['role'] == 'member':

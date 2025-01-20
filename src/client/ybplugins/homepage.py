@@ -15,7 +15,7 @@ class Index:
         self.public_basepath = glo_setting["public_basepath"]
 
     def register_routes(self, app: Quart):
-        @app.route(self.public_basepath, ["GET"])
+        @app.route(self.public_basepath, methods=["GET"])
         async def yobot_homepage():
             return await render_template(
                 "homepage.html",
@@ -34,7 +34,7 @@ class Index:
                 verinfo=self.setting["verinfo"]["ver_name"],
             )
 
-        @app.route("/favicon.ico", ["GET"])
+        @app.route("/favicon.ico", methods=["GET"])
         async def yobot_favicon():
             return await send_from_directory(static_folder, "small.ico")
 
